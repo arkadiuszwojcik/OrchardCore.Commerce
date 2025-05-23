@@ -1,0 +1,12 @@
+namespace OrchardCore.Commerce.Payment.Przelewy24.Models;
+
+public class TransactionVerifyRequest
+{
+    public int MerchantId { get; set; }
+    public int PosId { get; set; }
+    public string SessionId { get; set; }
+    public int Amount { get; set; }
+    public string Currency { get; set; }
+    public long OrderId { get; set; }
+    public string Sign { get; set; }
+}

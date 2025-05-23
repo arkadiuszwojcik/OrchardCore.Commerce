@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OrchardCore.Module.Targets" />
+    <PackageReference Include="OrchardCore.Settings" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OrchardCore.Commerce.Payment\OrchardCore.Commerce.Payment.csproj" />
+    <ProjectReference Include="..\OrchardCore.Commerce.Promotion\OrchardCore.Commerce.Promotion.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists($(LombiqHelpfulLibrariesPath))">
+    <ProjectReference Include="$(LombiqHelpfulLibrariesPath)\Lombiq.HelpfulLibraries.Refit/Lombiq.HelpfulLibraries.Refit.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="!Exists($(LombiqHelpfulLibrariesPath))">
+    <PackageReference Include="Lombiq.HelpfulLibraries.Refit" />
+  </ItemGroup>
+
+</Project>
