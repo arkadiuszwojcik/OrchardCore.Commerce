@@ -16,6 +16,6 @@ public class Przelewy24PaymentProvider : IPaymentProvider
 
     public string Name => throw new NotImplementedException();
 
-    public Task<object> CreatePaymentProviderDataAsync(IPaymentViewModel model, bool isPaymentRequest = false) => throw new NotImplementedException();
+    public Task<object> CreatePaymentProviderDataAsync(IPaymentViewModel model, bool isPaymentRequest = false, string shoppingCartId = null) => throw new NotImplementedException();
     public Task<PaymentOperationStatusViewModel> UpdateAndRedirectToFinishedOrderAsync(ContentItem order, string shoppingCartId) => throw new NotImplementedException();
 }
