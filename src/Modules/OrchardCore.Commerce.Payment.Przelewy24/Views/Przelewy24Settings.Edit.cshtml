@@ -1,0 +1,49 @@
+@using Microsoft.AspNetCore.Html
+@using Microsoft.AspNetCore.Mvc.Localization
+@using OrchardCore
+@using OrchardCore.Commerce.Payment.Przelewy24.Controllers
+@using OrchardCore.Commerce.Payment.Przelewy24.Drivers
+@model OrchardCore.Commerce.Payment.Przelewy24.Models.Przelewy24Settings
+
+<div class="mb-3">
+    <div>
+        <a id="Przelewy24Settings__testButton"
+           href="@(Orchard.Action<Przelewy24Controller>(controller => controller.VerifyApi()))"
+           class="btn btn-sm btn-primary">
+            @T["Verify currently saved API configuration"]
+        </a>
+    </div>
+    <span class="hint">
+        @T["Warning: pressing this button won't save the current page. If you have edited any fields it gets disabled."]
+    </span>
+</div>
+
+<fieldset asp-for="ProjectId"
+          label="@T["Project ID"]"
+          hint="@T["The GUID identifying the project."]"></fieldset>
+
+<fieldset asp-for="ApiKey"
+          label="@T["API key"]"
+          hint="@(new HtmlString(" ").Join(
+                    T["The secret API key for the project."],
+                    T["The field will be empty after saving it, for security reasons."]))"
+          type="password"></fieldset>
+
+<div class="mb-3">
+    <span class="hint">
+        @T["You can find your project information at <a href=\"https://panel.przelewy24.pl/\" target=\"_blank\">https://panel.przelewy24.pl/</a>."]
+    </span>
+</div>
+
+<script at="Foot" depends-on="jQuery">
+    jQuery(function($) {
+        const button = document.getElementById('Przelewy24Settings__testButton');
+        const ids = @Json.Serialize(new[]
+        {
+            Html.IdFor(model => model.ProjectId),
+            Html.IdFor(model => model.ApiKey),
+        });
+
+        $(ids.map((id) => document.getElementById(id))).change(() => button.classList.add('disabled'));
+    });
+</script>

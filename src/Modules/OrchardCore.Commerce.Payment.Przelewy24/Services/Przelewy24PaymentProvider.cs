@@ -1,11 +1,11 @@
+using Lombiq.HelpfulLibraries.OrchardCore.DependencyInjection;
 using OrchardCore.Commerce.Abstractions.Abstractions;
 using OrchardCore.Commerce.Payment.Abstractions;
+using OrchardCore.Commerce.Payment.Przelewy24.Models;
 using OrchardCore.Commerce.Payment.ViewModels;
 using OrchardCore.ContentManagement;
+using OrchardCore.Settings;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace OrchardCore.Commerce.Payment.Przelewy24.Services;
@@ -14,8 +14,23 @@ public class Przelewy24PaymentProvider : IPaymentProvider
 {
     public const string ProviderName = "Przelewy24";
 
-    public string Name => throw new NotImplementedException();
+    private readonly ISiteService _siteService;
 
-    public Task<object> CreatePaymentProviderDataAsync(IPaymentViewModel model, bool isPaymentRequest = false, string shoppingCartId = null) => throw new NotImplementedException();
-    public Task<PaymentOperationStatusViewModel> UpdateAndRedirectToFinishedOrderAsync(ContentItem order, string shoppingCartId) => throw new NotImplementedException();
+    public string Name => ProviderName;
+
+    public Przelewy24PaymentProvider(IOrchardServices<Przelewy24PaymentProvider> services)
+    {
+        _siteService = services.SiteService.Value;
+    }
+
+    public async Task<object> CreatePaymentProviderDataAsync(IPaymentViewModel model, bool isPaymentRequest = false, string shoppingCartId = null)
+    {
+        var settings = (await _siteService.GetSiteSettingsAsync())?.As<Przelewy24Settings>();
+        return string.IsNullOrEmpty(settings?.ApiKey) || string.IsNullOrEmpty(settings.ProjectId) ? null : new object();
+    }
+
+    public Task<PaymentOperationStatusViewModel> UpdateAndRedirectToFinishedOrderAsync(ContentItem order, string shoppingCartId)
+    {
+        return null;
+    }
 }

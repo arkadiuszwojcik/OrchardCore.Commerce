@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OrchardCore.Commerce.Payment.Abstractions;
@@ -9,7 +10,9 @@ using OrchardCore.Environment.Shell.Configuration;
 using OrchardCore.Modules;
 using OrchardCore.Navigation;
 using OrchardCore.Security.Permissions;
+using Refit;
 using System;
+using System.Text;
 
 namespace OrchardCore.Commerce.Payment.Przelewy24;
 
@@ -33,19 +36,19 @@ public class Startup : StartupBase
         services.AddScoped<INavigationProvider, AdminMenu>();
 
         // API client
-        //services.AddTransient<ExactlyApiHandler>();
-        //services.AddRefitClient<IExactlyApi>()
-        //    .ConfigureHttpClient((provider, client) =>
-        //    {
-        //        var settings = provider
-        //            .GetRequiredService<IHttpContextAccessor>()
-        //            .HttpContext!
-        //            .RequestServices
-        //            .GetRequiredService<IOptionsSnapshot<ExactlySettings>>()
-        //            .Value;
+        services.AddRefitClient<IPrzelewy24Api>()
+            .ConfigureHttpClient((provider, client) =>
+            {
+                var settings = provider
+                    .GetRequiredService<IHttpContextAccessor>()
+                    .HttpContext!
+                    .RequestServices
+                    .GetRequiredService<IOptionsSnapshot<Przelewy24Settings>>()
+                    .Value;
 
-        //        client.BaseAddress = new Uri(settings.BaseAddress);
-        //    })
-        //    .AddHttpMessageHandler<ExactlyApiHandler>();
+                client.BaseAddress = new Uri(settings.BaseAddress);
+                var accessToken = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{settings.ProjectId}:{settings.ApiKey}"));
+                client.DefaultRequestHeaders.Add("Authorization", $"Basic {accessToken}");
+            });
     }
 }

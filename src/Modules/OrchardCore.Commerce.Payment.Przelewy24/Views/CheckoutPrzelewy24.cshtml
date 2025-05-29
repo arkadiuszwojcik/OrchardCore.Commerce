@@ -1,0 +1,11 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using OrchardCore
+@using OrchardCore.Commerce.Payment.Przelewy24.Controllers
+@{
+    var actionUrl = Orchard.Action<Przelewy24Controller>(controller => controller.CreateTransaction(null));
+    var statusUrl = Orchard.Action<Przelewy24Controller>(controller => controller.GetRedirectUrl("TRANSACTION_ID"));
+    var defaultErrorMessage =
+        T["An error has occurred while trying to connect to the payment service. Please try again later."];
+}
+
+<shape type="PayButton" PayButtonClass="przelewy24" prop-Text="@T["Pay with Przelewy24\u00ae"]" />

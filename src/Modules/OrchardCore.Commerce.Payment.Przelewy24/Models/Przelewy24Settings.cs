@@ -9,7 +9,7 @@ namespace OrchardCore.Commerce.Payment.Przelewy24.Models;
 public class Przelewy24Settings
 {
     [Required]
-    public string BaseAddress { get; set; } = "https://secure.przelewy24.pl/";
+    public string BaseAddress { get; set; } = "https://sandbox.przelewy24.pl/";
 
     [Required]
     public string ProjectId { get; set; }
