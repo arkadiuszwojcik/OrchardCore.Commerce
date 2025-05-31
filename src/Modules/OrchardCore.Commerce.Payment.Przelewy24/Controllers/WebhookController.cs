@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OrchardCore.Commerce.Payment.Przelewy24.Models;
 using OrchardCore.Commerce.Payment.Przelewy24.Services;
+using OrchardCore.Commerce.Payment.Przelewy24.Settings;
 using OrchardCore.Settings;
 using System;
 using System.Threading.Tasks;
@@ -39,12 +40,12 @@ public class WebhookController : ControllerBase
             var notification = await HttpContext.Request.ReadFromJsonAsync<TransactionNotification>(HttpContext.RequestAborted);
 
             var przelewy24ApiSettings = (await _siteService.GetSiteSettingsAsync()).As<Przelewy24Settings>();
-            var przelewy24CrcKey = przelewy24ApiSettings.DecryptCrcKey(_dataProtectionProvider, _logger);
+            //var przelewy24CrcKey = przelewy24ApiSettings.DecryptCrcKey(_dataProtectionProvider, _logger);
 
-            if (notification.VerifySign(przelewy24CrcKey) == false)
-            {
-                return BadRequest();
-            }
+            //if (notification.VerifySign(przelewy24CrcKey) == false)
+            //{
+            //    return BadRequest();
+            //}
 
             // TODO: confirm payment
 

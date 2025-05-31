@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace OrchardCore.Commerce.Payment.Przelewy24.Helpers;
@@ -13,10 +14,8 @@ public static class Przelewy24Crypto
 
     public static string CalculateSign(IReadOnlyList<KeyValuePair<string, object>> data, string crc)
     {
-        string json = JsonSerializer.Serialize(data, JsonSignOptions);
-
-        using var sha384 = System.Security.Cryptography.SHA384.Create();
-        byte[] hashBytes = sha384.ComputeHash(System.Text.Encoding.UTF8.GetBytes(json));
+        var jsonUtf8 = JsonSerializer.SerializeToUtf8Bytes(data, JsonSignOptions);
+        byte[] hashBytes = SHA384.HashData(jsonUtf8);
         return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
     }
 }

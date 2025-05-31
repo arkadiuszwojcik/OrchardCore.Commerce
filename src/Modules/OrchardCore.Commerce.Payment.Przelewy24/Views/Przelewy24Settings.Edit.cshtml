@@ -3,14 +3,21 @@
 @using OrchardCore
 @using OrchardCore.Commerce.Payment.Przelewy24.Controllers
 @using OrchardCore.Commerce.Payment.Przelewy24.Drivers
-@model OrchardCore.Commerce.Payment.Przelewy24.Models.Przelewy24Settings
+@model OrchardCore.Commerce.Payment.Przelewy24.ViewModels.Przelewy24SettingsViewModel
+
+@if (Model.HasDecryptionError)
+{
+    <p class="alert alert-danger">@T["An error occurred while decrypting a setting. Please apply and save."]</p>
+}
+
+<h3>@T["Przelewy24 Integration Settings"]</h3>
 
 <div class="mb-3">
     <div>
         <a id="Przelewy24Settings__testButton"
            href="@(Orchard.Action<Przelewy24Controller>(controller => controller.VerifyApi()))"
            class="btn btn-sm btn-primary">
-            @T["Verify currently saved API configuration"]
+            @T["Verify currently saved API key"]
         </a>
     </div>
     <span class="hint">
@@ -18,15 +25,24 @@
     </span>
 </div>
 
-<fieldset asp-for="ProjectId"
-          label="@T["Project ID"]"
-          hint="@T["The GUID identifying the project."]"></fieldset>
+<fieldset asp-for="MerchantId"
+          label="@T["Merchant ID"]"
+          hint="@T["Merchant identification number."]"
+          type="number"></fieldset>
+
+<fieldset asp-for="PosId"
+          label="@T["Pos ID"]"
+          hint="@T["Shop identification number (defaults to merchant ID)."]"
+          type="number"></fieldset>
 
 <fieldset asp-for="ApiKey"
           label="@T["API key"]"
-          hint="@(new HtmlString(" ").Join(
-                    T["The secret API key for the project."],
-                    T["The field will be empty after saving it, for security reasons."]))"
+          hint="@T["API key (reports key)."]"
+          type="password"></fieldset>
+
+<fieldset asp-for="CrcKey"
+          label="@T["CRC key"]"
+          hint="@T["CRC key using to calculate sign."]"
           type="password"></fieldset>
 
 <div class="mb-3">
@@ -40,8 +56,10 @@
         const button = document.getElementById('Przelewy24Settings__testButton');
         const ids = @Json.Serialize(new[]
         {
-            Html.IdFor(model => model.ProjectId),
+            Html.IdFor(model => model.MerchantId),
+            Html.IdFor(model => model.PosId),
             Html.IdFor(model => model.ApiKey),
+            Html.IdFor(model => model.CrcKey),
         });
 
         $(ids.map((id) => document.getElementById(id))).change(() => button.classList.add('disabled'));

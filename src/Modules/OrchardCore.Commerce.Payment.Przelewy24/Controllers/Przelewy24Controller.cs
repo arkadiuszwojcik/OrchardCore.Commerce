@@ -5,9 +5,12 @@ using Microsoft.AspNetCore.Mvc.Localization;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using OrchardCore.Commerce.Abstractions.Models;
+using OrchardCore.Commerce.Payment.Abstractions;
 using OrchardCore.Commerce.Payment.Controllers;
 using OrchardCore.Commerce.Payment.Przelewy24.Drivers;
 using OrchardCore.Commerce.Payment.Przelewy24.Services;
+using OrchardCore.Commerce.Payment.Services;
+using OrchardCore.ContentManagement;
 using OrchardCore.DisplayManagement.Notify;
 using OrchardCore.Mvc.Core.Utilities;
 using Org.BouncyCastle.Asn1.X509;
@@ -26,28 +29,36 @@ public class Przelewy24Controller : PaymentBaseController
     private readonly IPrzelewy24Service _przelewy24Service;
     private readonly ILogger<Przelewy24Controller> _logger;
     private readonly INotifier _notifier;
+    private readonly IPaymentService _paymentService;
     private readonly IHtmlLocalizer<Przelewy24Controller> H;
     private readonly IStringLocalizer<Przelewy24Controller> S;
 
     public Przelewy24Controller(
         IPrzelewy24Service przelewy24Service,
-        IOrchardServices<Przelewy24Controller> services,
-        INotifier notifier)
+        INotifier notifier,
+        IPaymentService paymentService,
+        IOrchardServices<Przelewy24Controller> services)
         : base(notifier, services.Logger.Value)
     {
         _przelewy24Service = przelewy24Service;
         _logger = services.Logger.Value;
         _notifier = notifier;
+        _paymentService = paymentService;
         H = services.HtmlLocalizer.Value;
         S = services.StringLocalizer.Value;
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateTransaction(string shoppingCartId)
-    {
-        return null;
-    }
+    public async Task<IActionResult> CreateTransaction(string shoppingCartId) =>
+        await this.SafeJsonAsync(async () =>
+        {
+            var order = await _paymentService.CreatePendingOrderFromShoppingCartAsync(
+                shoppingCartId,
+                notifyOnError: false,
+                throwOnError: true);
+            return await _przelewy24Service.CreateTransactionAsync(order.As<OrderPart>());
+        });
 
     public async Task<IActionResult> GetRedirectUrl(string transactionId)
     {

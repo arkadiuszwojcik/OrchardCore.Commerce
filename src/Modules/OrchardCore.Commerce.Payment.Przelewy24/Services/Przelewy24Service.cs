@@ -1,7 +1,12 @@
 using Lombiq.HelpfulLibraries.AspNetCore.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using OrchardCore.Commerce.Abstractions.Models;
+using OrchardCore.Commerce.MoneyDataType;
+using OrchardCore.Commerce.Payment.Abstractions;
 using OrchardCore.Commerce.Payment.Przelewy24.Constants;
 using OrchardCore.Commerce.Payment.Przelewy24.Models;
+using OrchardCore.Commerce.Payment.Przelewy24.Helpers;
 using Refit;
 using System.Text.Json;
 using System.Threading;
@@ -24,6 +29,33 @@ public class Przelewy24Service : IPrzelewy24Service
     {
         using var result = await _api.TestAccessAsync(cancellationToken);
         return EvaluateResult(result);
+    }
+
+    public async Task<TransactionRegisterResponse> CreateTransactionAsync(OrderPart orderPart, Amount? total = null, CancellationToken cancellationToken = default)
+    {
+        using var result = await _api.RegisterTransactionAsync(null /*TODO*/, cancellationToken);
+        return EvaluateResult(result);
+    }
+
+    private async Task<TransactionRegisterRequest> GetTransactionRegisterRequest(OrderPart orderPart, HttpContext context, Amount? total = null)
+    {
+        var provider = context.RequestServices;
+        var amount = total ?? await provider.GetRequiredService<IPaymentService>().GetTotalAsync(shoppingCartId: null);
+
+        return new TransactionRegisterRequest
+        {
+            MerchantId = 0, // TODO
+            PosId = 0, // TODO
+            SessionId = orderPart.ContentItem.ContentItemId,
+            Amount = (int)AmountHelpers.GetPaymentAmount(amount),
+            Currency = amount.Currency.CurrencyIsoCode,
+            Description = "",
+            Email = orderPart.Email.Text,
+            Country = "PL",
+            Language = "pl",
+            UrlReturn = "",
+            Sign = ""
+        };
     }
 
     private static bool EvaluateResult(IApiResponse<Przelewy24TestAccessResponse> result)

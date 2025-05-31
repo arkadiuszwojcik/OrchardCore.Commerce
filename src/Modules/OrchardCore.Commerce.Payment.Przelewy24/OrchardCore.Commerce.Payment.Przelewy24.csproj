@@ -15,9 +15,13 @@
     <PackageReference Include="OrchardCore.Settings" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\OrchardCore.Commerce.Payment\OrchardCore.Commerce.Payment.csproj" />
-    <ProjectReference Include="..\OrchardCore.Commerce.Promotion\OrchardCore.Commerce.Promotion.csproj" />
+  <ItemGroup Condition="Exists($(OrchardCoreCommercePath))">
+    <ProjectReference Include="$(OrchardCoreCommercePath)\src\Modules\OrchardCore.Commerce.Payment/OrchardCore.Commerce.Payment.csproj" />
+    <ProjectReference Include="$(OrchardCoreCommercePath)\src\Modules\OrchardCore.Commerce.Promotion/OrchardCore.Commerce.Promotion.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="!Exists($(OrchardCoreCommercePath))">
+    <PackageReference Include="OrchardCore.Commerce.Payment" />
+    <PackageReference Include="OrchardCore.Commerce.Promotion" />
   </ItemGroup>
 
   <ItemGroup Condition="Exists($(LombiqHelpfulLibrariesPath))">

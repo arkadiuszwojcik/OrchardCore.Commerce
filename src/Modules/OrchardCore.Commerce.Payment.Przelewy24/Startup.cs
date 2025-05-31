@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OrchardCore.Commerce.Payment.Abstractions;
 using OrchardCore.Commerce.Payment.Przelewy24.Drivers;
-using OrchardCore.Commerce.Payment.Przelewy24.Models;
+using OrchardCore.Commerce.Payment.Przelewy24.Extensions;
 using OrchardCore.Commerce.Payment.Przelewy24.Services;
+using OrchardCore.Commerce.Payment.Przelewy24.Settings;
 using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.Environment.Shell.Configuration;
 using OrchardCore.Modules;
@@ -12,6 +14,7 @@ using OrchardCore.Navigation;
 using OrchardCore.Security.Permissions;
 using Refit;
 using System;
+using System.Net.Http;
 using System.Text;
 
 namespace OrchardCore.Commerce.Payment.Przelewy24;
@@ -36,6 +39,7 @@ public class Startup : StartupBase
         services.AddScoped<INavigationProvider, AdminMenu>();
 
         // API client
+        services.AddTransient<Przelewy24ApiHandler>();
         services.AddRefitClient<IPrzelewy24Api>()
             .ConfigureHttpClient((provider, client) =>
             {
@@ -47,8 +51,9 @@ public class Startup : StartupBase
                     .Value;
 
                 client.BaseAddress = new Uri(settings.BaseAddress);
-                var accessToken = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{settings.ProjectId}:{settings.ApiKey}"));
-                client.DefaultRequestHeaders.Add("Authorization", $"Basic {accessToken}");
-            });
+                //var accessToken = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{settings.ProjectId}:{settings.ApiKey}"));
+                //client.DefaultRequestHeaders.Add("Authorization", $"Basic {accessToken}");
+            })
+            .AddHttpMessageHandler<Przelewy24ApiHandler>();
     }
 }

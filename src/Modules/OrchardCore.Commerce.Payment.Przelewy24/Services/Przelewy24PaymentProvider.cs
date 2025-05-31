@@ -1,7 +1,7 @@
 using Lombiq.HelpfulLibraries.OrchardCore.DependencyInjection;
 using OrchardCore.Commerce.Abstractions.Abstractions;
 using OrchardCore.Commerce.Payment.Abstractions;
-using OrchardCore.Commerce.Payment.Przelewy24.Models;
+using OrchardCore.Commerce.Payment.Przelewy24.Settings;
 using OrchardCore.Commerce.Payment.ViewModels;
 using OrchardCore.ContentManagement;
 using OrchardCore.Settings;
@@ -26,7 +26,7 @@ public class Przelewy24PaymentProvider : IPaymentProvider
     public async Task<object> CreatePaymentProviderDataAsync(IPaymentViewModel model, bool isPaymentRequest = false, string shoppingCartId = null)
     {
         var settings = (await _siteService.GetSiteSettingsAsync())?.As<Przelewy24Settings>();
-        return string.IsNullOrEmpty(settings?.ApiKey) || string.IsNullOrEmpty(settings.ProjectId) ? null : new object();
+        return string.IsNullOrEmpty(settings?.ApiKey) || string.IsNullOrEmpty(settings.CrcKey) ? null : new object();
     }
 
     public Task<PaymentOperationStatusViewModel> UpdateAndRedirectToFinishedOrderAsync(ContentItem order, string shoppingCartId)

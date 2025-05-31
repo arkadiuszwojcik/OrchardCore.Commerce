@@ -11,6 +11,6 @@ public interface IPrzelewy24Api
     Task<ApiResponse<Przelewy24TestAccessResponse>> TestAccessAsync(CancellationToken cancellationToken);
 
     [Post("/api/v1/transaction/register")]
-    Task<ApiResponse<Przelewy24Response<TransactionRegisterResponse>>> CreateTransactionAsync(
+    Task<ApiResponse<Przelewy24Response<TransactionRegisterResponse>>> RegisterTransactionAsync(
         [Body(buffered: true)] TransactionRegisterRequest data, CancellationToken cancellationToken);
 }
