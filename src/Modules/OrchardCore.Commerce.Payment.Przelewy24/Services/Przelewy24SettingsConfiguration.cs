@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Options;
 using OrchardCore.Commerce.Payment.Przelewy24.Settings;
 using OrchardCore.Settings;
-using static Dapper.SqlMapper;
 
 namespace OrchardCore.Commerce.Payment.Przelewy24.Services;
 

@@ -11,6 +11,12 @@ using Refit;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using OrchardCore.Settings;
+using OrchardCore.Commerce.Payment.Przelewy24.Settings;
+using System.Collections.Generic;
+using OrchardCore.Commerce.Payment.Przelewy24.Extensions;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Logging;
 
 namespace OrchardCore.Commerce.Payment.Przelewy24.Services;
 
@@ -18,11 +24,17 @@ public class Przelewy24Service : IPrzelewy24Service
 {
     private readonly IPrzelewy24Api _api;
     private readonly IHttpContextAccessor _hca;
+    private readonly ISiteService _siteService;
+    private readonly IDataProtectionProvider _dataProtectionProvider;
+    private readonly ILogger _logger;
 
-    public Przelewy24Service(IPrzelewy24Api api, IHttpContextAccessor hca)
+    public Przelewy24Service(IPrzelewy24Api api, IHttpContextAccessor hca, ISiteService siteService, IDataProtectionProvider dataProtectionProvider, ILogger<Przelewy24Service> logger)
     {
         _api = api;
         _hca = hca;
+        _siteService = siteService;
+        _dataProtectionProvider = dataProtectionProvider;
+        _logger = logger;
     }
 
     public async Task<bool> TestAccess(CancellationToken cancellationToken)
@@ -33,28 +45,41 @@ public class Przelewy24Service : IPrzelewy24Service
 
     public async Task<TransactionRegisterResponse> CreateTransactionAsync(OrderPart orderPart, Amount? total = null, CancellationToken cancellationToken = default)
     {
+        var data = await GetTransactionRegisterRequest(orderPart, _hca.HttpContext, total);
         using var result = await _api.RegisterTransactionAsync(null /*TODO*/, cancellationToken);
         return EvaluateResult(result);
     }
 
     private async Task<TransactionRegisterRequest> GetTransactionRegisterRequest(OrderPart orderPart, HttpContext context, Amount? total = null)
     {
+        var apiSettings = (await _siteService.GetSiteSettingsAsync()).As<Przelewy24Settings>();
+        var crc = apiSettings.CrcKey.DecryptSecretString(_dataProtectionProvider, _logger);
+
         var provider = context.RequestServices;
         var amount = total ?? await provider.GetRequiredService<IPaymentService>().GetTotalAsync(shoppingCartId: null);
+        var amountInLowesttUnit = (int)AmountHelpers.GetPaymentAmount(amount);
+
+        var signList = new List<KeyValuePair<string, object>>() {
+            new("sessionId", orderPart.ContentItem.ContentItemId),
+            new("merchantId", apiSettings.MerchantId),
+            new("amount", amountInLowesttUnit),
+            new("currency", amount.Currency.CurrencyIsoCode),
+            new("crc", crc)
+        };
 
         return new TransactionRegisterRequest
         {
-            MerchantId = 0, // TODO
-            PosId = 0, // TODO
+            MerchantId = apiSettings.MerchantId,
+            PosId = apiSettings.PosId ?? apiSettings.MerchantId,
             SessionId = orderPart.ContentItem.ContentItemId,
-            Amount = (int)AmountHelpers.GetPaymentAmount(amount),
+            Amount = amountInLowesttUnit,
             Currency = amount.Currency.CurrencyIsoCode,
             Description = "",
             Email = orderPart.Email.Text,
             Country = "PL",
             Language = "pl",
             UrlReturn = "",
-            Sign = ""
+            Sign = Przelewy24Crypto.CalculateSign(signList, crc)
         };
     }
 
