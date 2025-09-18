@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using OrchardCore.Commerce.Payment.Przelewy24.Constants;
 using OrchardCore.Commerce.Payment.Przelewy24.Extensions;
 using OrchardCore.Commerce.Payment.Przelewy24.Settings;
 using OrchardCore.Commerce.Payment.Przelewy24.ViewModels;
@@ -50,8 +49,6 @@ public class Przelewy24SettingsDisplayDriver : SiteDisplayDriver<Przelewy24Setti
 
         return Initialize<Przelewy24SettingsViewModel>($"{nameof(Przelewy24Settings)}_Edit", model =>
         {
-            var protector = _dataProtectionProvider.CreateProtector(Przelewy24Constants.Features.Przelewy24);
-
             model.MerchantId = settings.MerchantId;
             model.PosId = settings.PosId;
 
@@ -59,7 +56,7 @@ public class Przelewy24SettingsDisplayDriver : SiteDisplayDriver<Przelewy24Setti
             {
                 try
                 {
-                    model.ApiKey = protector.Unprotect(settings.ApiKey);
+                    model.ApiKey = settings.ApiKey.DecryptSecretString(_dataProtectionProvider, _logger);
                 }
                 catch (CryptographicException)
                 {
@@ -77,7 +74,7 @@ public class Przelewy24SettingsDisplayDriver : SiteDisplayDriver<Przelewy24Setti
             {
                 try
                 {
-                    model.CrcKey = protector.Unprotect(settings.CrcKey);
+                    model.CrcKey = settings.CrcKey.DecryptSecretString(_dataProtectionProvider, _logger);
                 }
                 catch (CryptographicException)
                 {
