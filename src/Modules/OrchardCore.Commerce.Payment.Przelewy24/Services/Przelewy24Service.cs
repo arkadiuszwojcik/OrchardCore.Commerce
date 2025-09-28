@@ -45,8 +45,8 @@ public class Przelewy24Service : IPrzelewy24Service
 
     public async Task<TransactionRegisterResponse> CreateTransactionAsync(OrderPart orderPart, Amount? total = null, CancellationToken cancellationToken = default)
     {
-        var data = await GetTransactionRegisterRequest(orderPart, _hca.HttpContext, total);
-        using var result = await _api.RegisterTransactionAsync(null /*TODO*/, cancellationToken);
+        var requestData = await GetTransactionRegisterRequest(orderPart, _hca.HttpContext, total);
+        using var result = await _api.RegisterTransactionAsync(requestData, cancellationToken);
         return EvaluateResult(result);
     }
 

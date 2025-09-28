@@ -50,7 +50,7 @@ public class Przelewy24Controller : PaymentBaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateTransaction(string shoppingCartId) =>
+    public async Task<IActionResult> CreateTransaction(string? shoppingCartId) =>
         await this.SafeJsonAsync(async () =>
         {
             var order = await _paymentService.CreatePendingOrderFromShoppingCartAsync(
