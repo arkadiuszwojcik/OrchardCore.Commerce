@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
     <Title>Orchard Core Commerce - Payment</Title>
-    <Authors>Bertrand Le Roy</Authors>
+    <Authors>Orchard Core Community and Contributors</Authors>
     <Copyright>Copyright © 2018 .NET Foundation</Copyright>
     <Description>Payment for Orchard Core Commerce</Description>
     <PackageTags>OrchardCore;OrchardCore.Commerce;Commerce;e-Commerce;Payment</PackageTags>

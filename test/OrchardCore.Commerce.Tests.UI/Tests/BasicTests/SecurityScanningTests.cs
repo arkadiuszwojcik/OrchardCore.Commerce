@@ -28,6 +28,26 @@ public class SecurityScanningTests : UITestBase
                         40027,
                         "The query time is controllable using parameter value [some SQL injection]");
 
+                    configuration.DisableSubresourceIntegrityAttributeMissingRuleForGoogleFonts();
+
+                    FalsePositive(
+                        configuration,
+                        40018,
+                        "SQL Injection",
+                        "It says \"The page results were successfully manipulated using the boolean conditions\", " +
+                        "but the \"manipulation\" is simply that the site returns the error screen \"Your browser " +
+                        "sent a request that this server could not understand.\" with an error code, so the problem " +
+                        "is already handled internally by OC.",
+                        @".*/shoppingcart/AddItem.*");
+
+                    FalsePositive(
+                        configuration,
+                        40018,
+                        "SQL Injection",
+                        "It has nothing to do with SQL manipulation, it just gave a query that returns different " +
+                        "results (nothing, because we don't have a product called \"ZAP\").",
+                        @".*pagenum=.*products.title=ZAP.*");
+
                     FalsePositive(
                         configuration,
                         10202,
