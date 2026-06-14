@@ -1,0 +1,389 @@
+.easypack_rates {
+    max-width: 600px;
+}
+
+.easypack_rates td {
+    max-width: 60px;
+}
+
+.easypack_rates .input-text {
+    width: 100%;
+}
+
+.easypack_rates .price {
+    width: 60px;
+}
+
+.easypack_rates .country {
+    padding-left: 10px;
+}
+
+.easypack_rates .action {
+    width: 90px;
+}
+
+.easypack_rates .delete_rate {
+    width: 100%;
+    text-align: center;
+}
+
+#woocommerce_easypack_cross_border_parcel_machines_rates, #woocommerce_easypack_parcel_machines_cod_rates {
+    max-width: 600px;
+}
+
+#woocommerce_easypack_cross_border_parcel_machines_rates .input-text {
+    width: 100%;
+}
+
+#woocommerce_easypack_parcel_machines_rates {
+    max-width: 600px;
+}
+
+#woocommerce_easypack_parcel_machines_rates .input-text {
+    width: 100%;
+}
+
+#woocommerce_easypack_parcel_machines_cod_rates {
+    max-width: 600px;
+}
+
+#woocommerce_easypack_parcel_machines_cod_rates .price {
+    width: 70px;
+}
+
+#woocommerce_easypack_parcel_machines_cod_rates .input-text {
+    width: 100%;
+}
+
+#woocommerce_easypack_cross_border_courier_rates {
+    max-width: 800px;
+}
+
+#woocommerce_easypack_cross_border_courier_rates .input-text {
+    width: 100%;
+}
+
+#woocommerce_easypack_cross_border_courier_rates .price {
+    width: 60px;
+}
+
+#woocommerce_easypack_cross_border_courier_rates .country {
+    padding-left: 10px;
+}
+
+#easypack_error {
+    font-weight: bold;
+    color: red;
+}
+
+.easypack_error {
+    font-weight: bold;
+    color: red;
+}
+
+#easypack_error ul li {
+    list-style-type: circle;
+    margin-left: 30px;
+}
+
+ul.easypack_error li {
+    list-style-type: circle;
+    margin-left: 30px;
+}
+
+.form-row label {
+    display: inline;
+}
+
+.form-row input[type=number], .form-row input[type=text], .form-row select {
+    width: auto;
+}
+
+.shipment_costs_wrapper span {
+    font-size: 11px;
+
+}
+
+/*.hidden {
+    display: none;
+}*/
+
+#send_method_field {
+    top: -2px;
+    position: relative;
+}
+
+.graytext {
+    color: graytext;
+
+}
+
+.padding-bottom15 {
+    padding-bottom: 15px !important;
+}
+
+.easypack-disabled {
+    pointer-events: none;
+    color: graytext !important;
+}
+
+.easypack-disabled span {
+    pointer-events: none;
+    color: graytext !important;
+}
+
+.admin-label {
+    display:inline-block!important;
+    *display: inline!important;     /* for IE7*/
+    zoom:1!important;              /* for IE7*/
+    float: left!important;
+    padding-top: 5px!important;
+    text-align: right!important;
+    width: 140px!important;
+}
+
+.admin-input {
+    margin-top: 5px!important;
+    margin-bottom: 5px!important;
+    display:inline-block!important;
+    *display: inline!important;     /* for IE7*/
+    zoom:1!important;              /* for IE7*/
+    vertical-align:middle!important;
+    margin-left:20px!important;
+}
+
+.max-width-select {
+    max-width: 251px!important;
+}
+
+#easypack_parcels  .required {
+    display: none !important;
+}
+
+#easypack_parcels {
+    margin-left: 0!important;
+}
+
+#easypack_parcels .woocommerce-input-wrapper {
+    display: block;!important;
+}
+
+.easypack_parcel select {
+    width: 160px !important;
+}
+
+#send_method {
+    width: 150px;
+}
+
+#dispatch_point {
+    width: 500px;
+}
+
+#easypack_shipping_statuses {
+    min-width: 150px;
+}
+
+.easypack_cod_amount {
+    display: block;
+}
+
+.inpost-status-inside-td.easypack-alert-status {
+    color: #c63f3f;
+}
+
+.easypack_shipping_statuses.column-easypack_shipping_statuses.easypack-alert-status {
+    color: #c63f3f;
+}
+
+
+
+select#second_parcel {
+    width: 100% !important;
+}
+#easypack_add_additional_parcel {
+    display: none;
+}
+.easypack_additional_parcel {
+    display: none;
+}
+.second_package_added {
+    border: 1px solid #38b134;
+    padding: 12px;
+    border-radius: 5px;
+}
+.additional-package-status {
+    background: #f5f5cc;
+}
+
+
+.easypack_additional_package_data_heading {
+    display: block;
+    font-weight: bold;
+    background: #f5f5cc;
+}
+.easypack_additional_package_data_title {
+    display: block;
+    font-weight: bold;
+}
+
+.easypack_additional_package_data {
+    padding: 5px;
+    margin-bottom: 10px;
+    border: 2px dotted #ccc;
+}
+.get_additional_sticker {
+    margin-top: 13px;
+    display: block;
+}
+h2.easypack_parcel_additional {
+    background: #fdcb37;
+}
+
+.easypack_parcel_additional img {
+    background: #fff !important;
+}
+
+#get_sticker_additional {
+    margin-top: 10px;
+}
+.get_additional_sticker:hover{
+    cursor:pointer;
+}
+
+#get_sticker_additional_now {
+    margin-top: 20px;
+}
+
+#get_sticker_additional_now:hover{
+    cursor:pointer;
+}
+
+#get_sticker_additional_now {
+    background: #f5f5cc;
+}
+.easypack_additional_parcel select {
+    width: 100% !important;
+}
+
+#help_options-description p {
+  font-size: 1.3em;	
+  margin-bottom: 40px;
+  background: #fff;
+  padding: 10px;
+  border: 3px solid #273ce8;
+}
+
+.easypack-courier-repeat-block.divided {
+  border: 2px solid #cecece;
+  display: block;
+  padding: 19px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+
+.easypack-repeat-block-title {
+    display: block;
+}
+
+.easypack-courier-repeat-block-title {
+    display: none;
+}
+
+.easypack-courier-repeat-block-title.divided {
+    display: block;
+}
+
+
+.easypack-courier-repeat-block-btn-close {
+    background: #e5e3e3;
+    font-size: 18px;
+    border: 1px solid #000;
+    border-radius: 3px;
+    text-align: center;
+    width:26px;
+    height:26px;
+    display:none;
+    float:right;
+    margin-bottom: 10px;
+}
+.easypack-courier-repeat-block-btn-close.divided {
+    display: block;
+}
+.easypack-courier-repeat-block-btn-close:hover {
+    cursor:pointer;
+}
+.easypack_divide_parcel {
+    display: none;
+    margin: auto;
+    width: 100%;
+    margin-bottom: 10px;
+}
+.easypack_divide_parcel.divided {
+    display: flex;
+}
+.easypack_divide_parcel:hover {
+    cursor:pointer;
+}
+.easypack_divide_parcel_title {
+    margin: auto;
+    padding-bottom: 3px;
+}
+.easypack_parcel input {
+    line-height: normal;
+}
+
+#easypack_wielopak_label {
+    background: #f5f5cc;
+    padding: 2px;
+}
+
+label[for="easypack_sms_enabled"] {
+    margin-bottom: 10px;
+}
+
+input[name="easypack_insurance_amount_mode"] {
+    min-width: unset !important;
+}
+
+.inpost_pl_package_dimensions select {
+    width: 100% !important;
+}
+
+.inpost-pl-max-value-tooltip {
+    animation: fadeIn 0.3s;
+}
+
+
+
+/* Copy icon styling */
+.inpost-copy-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #b6bdc0;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    font-size: 18px;
+}
+
+.inpost-copy-icon:hover {
+    background: #47b869;
+    transform: translateY(-1px);
+}
+
+.inpost-copy-icon:active {
+    transform: translateY(0);
+}
+
+/* Success state */
+.inpost-copy-icon.copied {
+    background: #46b450;
+}
+
+

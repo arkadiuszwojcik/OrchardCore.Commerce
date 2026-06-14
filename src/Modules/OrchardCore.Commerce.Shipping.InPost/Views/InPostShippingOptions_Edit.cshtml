@@ -1,0 +1,59 @@
+@model OrchardCore.Commerce.Shipping.InPost.Options.InPostShippingOptions
+
+<div class="mb-3" asp-validation-class-for="Enabled">
+    <div class="w-sm-75 w-md-50 w-lg-25 pe-md-3">
+        <input asp-for="Enabled" type="checkbox" class="form-check-input" checked="@Model.Enabled" />
+        <label asp-for="Enabled" class="form-check-label">@T["Enable InPost shipping provider"]</label>
+    </div>
+</div>
+
+<fieldset asp-for="ApiToken"
+          label="@T["ShipX API token"]"
+          hint="@T["Bearer token used to call InPost ShipX API."]"
+          type="password"></fieldset>
+
+<fieldset asp-for="OrganizationId"
+          label="@T["Organization ID"]"
+          hint="@T["Organization identifier used in ShipX endpoints."]"></fieldset>
+
+<fieldset asp-for="Environment"
+          label="@T["Environment"]"
+          hint="@T["Use 'production' or 'sandbox'."]"></fieldset>
+
+<fieldset asp-for="Country"
+          label="@T["Country"]"
+          hint="@T["Use 'PL' or 'GB' for default ShipX host selection."]"></fieldset>
+
+<fieldset asp-for="BaseUrlOverride"
+          label="@T["Base URL override"]"
+          hint="@T["Optional absolute URL to override environment/country host resolution."]"></fieldset>
+
+<fieldset asp-for="RequestTimeoutSeconds"
+          label="@T["Request timeout (seconds)"]"></fieldset>
+
+<fieldset asp-for="Currency"
+          label="@T["Currency"]"
+          hint="@T["ISO currency code for returned shipping rates (for example PLN)."]"></fieldset>
+
+<h5 class="mt-4 mb-3">@T["Sender Defaults (ShipX Calculate)"]</h5>
+
+<fieldset asp-for="SenderFirstName" label="@T["Sender first name"]"></fieldset>
+<fieldset asp-for="SenderLastName" label="@T["Sender last name"]"></fieldset>
+<fieldset asp-for="SenderEmail" label="@T["Sender email"]"></fieldset>
+<fieldset asp-for="SenderPhone" label="@T["Sender phone"]"></fieldset>
+<fieldset asp-for="SenderCompanyName" label="@T["Sender company"]"></fieldset>
+<fieldset asp-for="SenderStreet" label="@T["Sender street"]"></fieldset>
+<fieldset asp-for="SenderBuildingNumber" label="@T["Sender building number"]"></fieldset>
+<fieldset asp-for="SenderPostalCode" label="@T["Sender postal code"]"></fieldset>
+<fieldset asp-for="SenderCity" label="@T["Sender city"]"></fieldset>
+<fieldset asp-for="SenderCountryCode" label="@T["Sender country code"]"></fieldset>
+
+<h5 class="mt-4 mb-3">@T["Default Parcel"]</h5>
+
+<fieldset asp-for="DefaultParcelWeightKg" label="@T["Weight (kg)"]"></fieldset>
+<fieldset asp-for="DefaultParcelLengthMm" label="@T["Length (mm)"]"></fieldset>
+<fieldset asp-for="DefaultParcelWidthMm" label="@T["Width (mm)"]"></fieldset>
+<fieldset asp-for="DefaultParcelHeightMm" label="@T["Height (mm)"]"></fieldset>
+<fieldset asp-for="DefaultLockerPointId" label="@T["Default locker point ID"]" hint="@T["Used for locker service calculation payloads."]"></fieldset>
+
+<span class="hint">@T["When saving with an empty API token, the previously saved token is kept."]</span>

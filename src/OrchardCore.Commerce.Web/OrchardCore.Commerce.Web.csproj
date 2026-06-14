@@ -33,6 +33,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\test\OrchardCore.Commerce.Tests.UI.Shortcuts\OrchardCore.Commerce.Tests.UI.Shortcuts.csproj" />
     <ProjectReference Include="..\Modules\OrchardCore.Commerce.Payment.Stripe\OrchardCore.Commerce.Payment.Stripe.csproj" />
+    <ProjectReference Include="..\Modules\OrchardCore.Commerce.Shipping.InPost\OrchardCore.Commerce.Shipping.InPost.csproj" />
+    <ProjectReference Include="..\Modules\OrchardCore.Commerce.Shipping.WooCompatibility\OrchardCore.Commerce.Shipping.WooCompatibility.csproj" />
+    <ProjectReference Include="..\Modules\OrchardCore.Commerce.Shipping\OrchardCore.Commerce.Shipping.csproj" />
     <ProjectReference Include="..\Modules\OrchardCore.Commerce\OrchardCore.Commerce.csproj" />
   </ItemGroup>
 

@@ -1,0 +1,288 @@
+.easypack-shipping-method-logo img {
+	max-width: 100px;
+	max-height: 40px;
+	display: block;
+	border:none;
+    margin-top: 4px;
+}
+
+.sheepla-widget-fullscreen {
+	position: fixed;
+}
+
+.inpost_returns_button {
+	background:linear-gradient(#FFE462, #FFA900) #FFE462;
+	border:1px solid #FECB2C;
+	box-shadow:#666666 0 1px 1px;
+	color:#000000  !important;
+	display:inline-block  !important;
+	font-size:18px;
+	letter-spacing:0;
+	line-height:18px;
+	text-decoration:none  !important;
+	text-shadow:#FFFFFF 1px 1px 3px;
+	text-transform:uppercase;
+	border-radius:8px;
+	display:block;
+	font-size:20px;
+	margin:20px auto 0;
+	padding:13px 42px !important;
+}
+
+
+.font-height-600 {
+	font-weight: 600;!important;
+}
+
+.hidden-paczkomat-data {
+	display: none;!important;
+}
+
+
+.italic {
+	font-style: italic;
+}
+
+.easypack-parcel-machine-select {
+	padding-bottom: 20px;
+}
+
+.easypack-shipping-method-logo {
+	/*top: 13px;*/
+	position: relative;
+}
+
+.woocommerce-checkout-review-order-table .easypack-shipping-method-logo {
+	position: relative;
+	top: -3px;
+}
+
+.calculated_shipping .easypack-shipping-method-logo {
+	position: relative;
+	top: -3px;
+}
+
+#inpost_geowidget_modal{
+	/*display: none;!important;
+	margin-bottom: 300px;*/
+}
+
+.woocommerce-button.wp-element-button.button.easypack_tracking {
+    margin: 5px;
+}
+
+.woocommerce-button.wp-element-button.button.fast_return {
+    margin: 5px;
+}
+
+.easypack-weekend-shipping-method-logo img {
+    max-width: 100px;
+    max-height: 40px;
+    display: block;
+    border:none;
+    /*margin-left: 18px;*/
+    margin-top: 4px;
+}
+
+.easypack-weekend-shipping-method-logo {
+    /*top: 13px;*/
+    position: relative;
+}
+
+.woocommerce-checkout-review-order-table .easypack-weekend-shipping-method-logo {
+    position: relative;
+    top: -3px;
+}
+
+.calculated_shipping .easypack-weekend-shipping-method-logo {
+    position: relative;
+    top: -3px;
+}
+
+
+.easypack-custom-shipping-method-logo img {
+    max-width: 100px;
+    max-height: 40px;
+    display: block;
+    border:none;
+    /*margin-left: 18px;*/
+    margin-top: 4px;
+}
+
+.easypack-custom-shipping-method-logo {
+    /*top: 13px;*/
+    position: relative;
+}
+
+.woocommerce-checkout-review-order-table .easypack-custom-shipping-method-logo {
+    position: relative;
+    top: -3px;
+}
+
+.calculated_shipping .easypack-custom-shipping-method-logo {
+    position: relative;
+    top: -3px;
+}
+
+.easypack_show_geowidget {
+    border: 0 !important;
+    font-size: 19px !important;
+    box-shadow: 0 15px 30px -18px rgba(0,0,0,90%) !important;
+    color: #fff;
+    display: block;
+    margin: auto;
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: #FCC905;
+    border-radius: 3px;
+    line-height: 1em;
+    padding: 17px 15px 17px 15px;
+	max-width: 200px;
+}
+
+.easypack_show_geowidget:hover {
+    cursor:pointer;
+}
+
+#easypack_selected_point_data {
+    border: 2px solid #FCC905;
+    border-radius: 5px;
+    padding: 10px;
+    background: #fff;
+}
+
+#selected-parcel-machine {
+    border: 3px solid #FCC905;
+    padding: 15px;
+    border-radius: 5px;
+	min-width: fit-content;
+	margin: 10px;
+}
+
+.inpost-parcel-locker-wrap {
+    display:none;
+}
+
+.easypack-visible-point-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: block;
+    background: #9cf9b7;
+}
+
+.ep-chosen-parcel-machine {
+    font-size: 1.3em;
+    font-weight: bold;
+    background: #9cf9b7;
+    padding: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+.easypack-woocommerce-checkout-block-alert {
+    border: 2px dotted #f00;
+    padding: 7px;
+}
+
+.easypack-woocommerce-checkout-block-alert:hover {
+    cursor: pointer;
+}
+
+
+#inpost-pl-typ-map-data {
+    margin-top: 20px;
+}
+
+span.inpost-pl-select-from-points-preloader {
+    display: none;
+}
+
+.inpost-pl-related-point-btn:hover {
+    cursor: pointer !important;
+    background: #ddf6dd !important;
+}
+
+.inpost_pl_geowidget_related_preloader {
+    display:none;
+    margin-bottom: 10px;
+}
+
+.inpost_pl_geowidget_related_preloader > img {
+    display:flex;
+    margin: auto;
+}
+
+.inpost-pl-related-points-container {
+    padding: 20px;
+}
+
+.hidden-inpost-pl-typ-data {
+    display: none; !important;
+}
+
+.inpost-pl-related-locker-info {
+    color: #666;
+    font-weight: bold;
+}
+
+.inpost_pl_geowidget_typ {
+    border: 1px solid #000;
+    padding: 20px;
+}
+
+div.inpost_pl_locker_changed {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 1.5em;
+}
+
+.inpost_pl-shipping-method-meta-wrap {
+    display: flex;
+    align-items: center;
+}
+
+.inpost_pl_shipping_meta {
+    display: inline-block;
+}
+
+span#inpost_pl_delivery_terms, span#inpost_pl_block_delivery_terms {
+    font-size: 0.7em;
+    border: 3px dotted #3c3b35;
+    border-radius: 5px;
+    padding: 0px 10px;
+    margin-left: 5px;
+    line-height: normal;
+}
+
+
+.inpost_pl-block-shipping-method-meta-wrap {
+    display: flex;
+    align-items: center;
+}
+
+.inpost_pl_block_shipping_meta {
+    display: inline-block;
+}
+
+@media (max-width: 767px) {
+    .inpost_pl-block-shipping-method-meta-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .inpost_pl_block_shipping_meta {
+        margin-top: 8px;
+    }
+}
+
+@media (max-width: 767px) {
+    .inpost_pl-shipping-method-meta-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .inpost_pl_shipping_meta {
+        margin-top: 8px;
+    }
+}

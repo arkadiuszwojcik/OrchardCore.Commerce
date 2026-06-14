@@ -1,0 +1,1 @@
+(()=>{"use strict";(0,window.wp.plugins.registerPlugin)("inpost_pl_block",{render:()=>{},scope:"woocommerce-checkout"})})();
