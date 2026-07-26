@@ -1,0 +1,64 @@
+@model ShipmentPartViewModel
+
+<div class="shipment-summary card mb-3">
+    <div class="card-header d-flex align-items-center gap-2">
+        <strong>@T["Shipment"]</strong>
+        @{
+            var fulfillBadge = Model.FulfillmentStatus switch
+            {
+                "Delivered" => "bg-success",
+                "InTransit" or "AwaitingPickup" => "bg-primary",
+                "Returned" or "Cancelled" or "Lost" => "bg-danger",
+                _ => "bg-secondary",
+            };
+        }
+        <span class="badge @fulfillBadge ms-1">@Model.FulfillmentStatus</span>
+        @{
+            var trackBadge = Model.TrackingStatus switch
+            {
+                "Delivered" => "bg-success",
+                "InTransit" or "OutForDelivery" => "bg-primary",
+                "Exception" or "Expired" => "bg-danger",
+                _ => "bg-secondary",
+            };
+        }
+        @if (Model.TrackingStatus != "Unknown")
+        {
+            <span class="badge @trackBadge">@Model.TrackingStatus</span>
+        }
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            @if (!string.IsNullOrEmpty(Model.ShipmentId))
+            {
+                <dt class="col-sm-3">@T["Shipment ID"]</dt>
+                <dd class="col-sm-9 font-monospace small">@Model.ShipmentId</dd>
+            }
+            @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+            {
+                <dt class="col-sm-3">@T["Tracking"]</dt>
+                <dd class="col-sm-9">
+                    @if (!string.IsNullOrEmpty(Model.TrackingUrl))
+                    {
+                        <a href="@Model.TrackingUrl" target="_blank" rel="noopener noreferrer">
+                            @Model.TrackingNumber <i class="fa fa-external-link-alt ms-1" aria-hidden="true"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        @Model.TrackingNumber
+                    }
+                </dd>
+            }
+            @if (Model.HasLabel)
+            {
+                <dt class="col-sm-3">@T["Label"]</dt>
+                <dd class="col-sm-9">
+                    <a href="#" class="btn btn-sm btn-outline-secondary">
+                        <i class="fa fa-download me-1" aria-hidden="true"></i>@T["Download"]
+                    </a>
+                </dd>
+            }
+        </dl>
+    </div>
+</div>

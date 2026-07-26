@@ -1,0 +1,74 @@
+@model ShippingMethodPartViewModel
+
+<div class="ocat-wrapper" asp-validation-class-for="DisplayName">
+    <label asp-for="DisplayName" class="ocat-label ocat-label-required">@T["Display Name"]</label>
+    <div class="ocat-end">
+        <input asp-for="DisplayName" class="form-control" />
+        <span asp-validation-for="DisplayName"></span>
+        <span class="hint">@T["Shown to customers at checkout (e.g. 'DHL Express Worldwide')."]</span>
+    </div>
+</div>
+
+<div class="ocat-wrapper" asp-validation-class-for="Description">
+    <label asp-for="Description" class="ocat-label">@T["Description"]</label>
+    <div class="ocat-end">
+        <input asp-for="Description" class="form-control" />
+        <span asp-validation-for="Description"></span>
+        <span class="hint">@T["Optional subtitle shown below the method name at checkout."]</span>
+    </div>
+</div>
+
+<div class="ocat-wrapper" asp-validation-class-for="ProviderConnectionId">
+    <label asp-for="ProviderConnectionId" class="ocat-label ocat-label-required">@T["Provider Connection (content item ID)"]</label>
+    <div class="ocat-end">
+        <input asp-for="ProviderConnectionId" class="form-control" />
+        <span asp-validation-for="ProviderConnectionId"></span>
+        <span class="hint">@T["Content item ID of the Shipping Provider Connection used for rate quotes and shipment creation."]</span>
+    </div>
+</div>
+
+<div class="ocat-wrapper" asp-validation-class-for="ServiceId">
+    <label asp-for="ServiceId" class="ocat-label">@T["Service ID"]</label>
+    <div class="ocat-end">
+        <input asp-for="ServiceId" class="form-control" placeholder="e.g. N (DHL Express Worldwide)" />
+        <span asp-validation-for="ServiceId"></span>
+        <span class="hint">@T["Carrier-specific service code. Leave blank to offer all available services from the connection."]</span>
+    </div>
+</div>
+
+<div class="ocat-wrapper" asp-validation-class-for="OriginId">
+    <label asp-for="OriginId" class="ocat-label">@T["Ship From (Origin content item ID)"]</label>
+    <div class="ocat-end">
+        <input asp-for="OriginId" class="form-control" />
+        <span asp-validation-for="OriginId"></span>
+        <span class="hint">@T["Content item ID of the Shipping Origin. Leave blank to use the default origin."]</span>
+    </div>
+</div>
+
+<div class="ocat-wrapper" asp-validation-class-for="IconUrl">
+    <label asp-for="IconUrl" class="ocat-label">@T["Icon URL"]</label>
+    <div class="ocat-end">
+        <input asp-for="IconUrl" class="form-control" type="url" />
+        <span asp-validation-for="IconUrl"></span>
+        <span class="hint">@T["Optional carrier logo shown to customers at checkout."]</span>
+    </div>
+</div>
+
+<div class="ocat-limited-wrapper" asp-validation-class-for="SortOrder">
+    <label asp-for="SortOrder" class="ocat-label">@T["Sort Order"]</label>
+    <div class="ocat-limited">
+        <input asp-for="SortOrder" class="form-control" type="number" />
+        <span asp-validation-for="SortOrder"></span>
+        <span class="hint">@T["Lower values appear first at checkout."]</span>
+    </div>
+</div>
+
+<div class="ocat-wrapper">
+    <div class="ocat-end-offset">
+        <div class="form-check">
+            <input asp-for="IsEnabled" class="form-check-input" type="checkbox" />
+            <label asp-for="IsEnabled" class="form-check-label">@T["Enabled"]</label>
+        </div>
+        <span class="hint">@T["Only enabled methods are offered to customers at checkout."]</span>
+    </div>
+</div>

@@ -1,0 +1,40 @@
+@model ShippingOrderPartViewModel
+
+@if (!string.IsNullOrEmpty(Model.ServiceName))
+{
+    <div class="shipping-order-summary card mb-3">
+        <div class="card-header">
+            <strong>@T["Shipping"]</strong>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">@T["Method"]</dt>
+                <dd class="col-sm-9">@Model.ServiceName</dd>
+
+                @if (!string.IsNullOrEmpty(Model.TotalPrice))
+                {
+                    <dt class="col-sm-3">@T["Cost"]</dt>
+                    <dd class="col-sm-9">@Model.TotalPrice</dd>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.DestinationAddress))
+                {
+                    <dt class="col-sm-3">@T["Ship To"]</dt>
+                    <dd class="col-sm-9">@Model.DestinationAddress</dd>
+                }
+
+                @if (Model.HasPickupPoint)
+                {
+                    <dt class="col-sm-3">@T["Pickup Point"]</dt>
+                    <dd class="col-sm-9">@Model.PickupPointName</dd>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.EstimatedDelivery))
+                {
+                    <dt class="col-sm-3">@T["Est. Delivery"]</dt>
+                    <dd class="col-sm-9">@Model.EstimatedDelivery</dd>
+                }
+            </dl>
+        </div>
+    </div>
+}

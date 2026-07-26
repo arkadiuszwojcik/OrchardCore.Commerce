@@ -1,0 +1,95 @@
+@model ShipmentPartViewModel
+
+<div class="ocat-wrapper">
+    <span class="ocat-label">@T["Shipment ID"]</span>
+    <div class="ocat-end">
+        <input asp-for="ShipmentId" class="form-control" readonly />
+        <span class="hint">@T["Assigned by the carrier after purchase."]</span>
+    </div>
+</div>
+
+<div class="ocat-wrapper">
+    <span class="ocat-label">@T["Order"]</span>
+    <div class="ocat-end">
+        <input asp-for="OrderId" class="form-control" readonly />
+    </div>
+</div>
+
+<div class="ocat-wrapper">
+    <span class="ocat-label">@T["Tracking Number"]</span>
+    <div class="ocat-end">
+        @if (!string.IsNullOrEmpty(Model.TrackingUrl))
+        {
+            <a href="@Model.TrackingUrl" target="_blank" rel="noopener noreferrer" class="form-control-plaintext fw-bold">
+                @Model.TrackingNumber <i class="fa fa-external-link-alt ms-1" aria-hidden="true"></i>
+            </a>
+        }
+        else
+        {
+            <input asp-for="TrackingNumber" class="form-control" readonly />
+        }
+    </div>
+</div>
+
+<div class="ocat-limited-wrapper">
+    <span class="ocat-label">@T["Purchase Status"]</span>
+    <div class="ocat-limited">
+        @{
+            var purchaseBadge = Model.PurchaseStatus switch
+            {
+                "Purchased" => "bg-success",
+                "Failed" => "bg-danger",
+                "Pending" => "bg-warning text-dark",
+                "Cancelled" => "bg-secondary",
+                _ => "bg-light text-dark border",
+            };
+        }
+        <span class="badge @purchaseBadge">@Model.PurchaseStatus</span>
+    </div>
+</div>
+
+<div class="ocat-limited-wrapper" asp-validation-class-for="FulfillmentStatus">
+    <label asp-for="FulfillmentStatus" class="ocat-label">@T["Fulfillment Status"]</label>
+    <div class="ocat-limited">
+        <select asp-for="FulfillmentStatus" class="form-select">
+            <option value="Pending">@T["Pending"]</option>
+            <option value="AwaitingPickup">@T["Awaiting Pickup"]</option>
+            <option value="InTransit">@T["In Transit"]</option>
+            <option value="Delivered">@T["Delivered"]</option>
+            <option value="Returned">@T["Returned"]</option>
+            <option value="Cancelled">@T["Cancelled"]</option>
+            <option value="Lost">@T["Lost"]</option>
+        </select>
+        <span asp-validation-for="FulfillmentStatus"></span>
+    </div>
+</div>
+
+<div class="ocat-limited-wrapper">
+    <span class="ocat-label">@T["Carrier Tracking Status"]</span>
+    <div class="ocat-limited">
+        @{
+            var trackingBadge = Model.TrackingStatus switch
+            {
+                "Delivered" => "bg-success",
+                "Exception" or "Expired" => "bg-danger",
+                "InTransit" or "OutForDelivery" => "bg-primary",
+                "Unknown" or "Pending" => "bg-secondary",
+                _ => "bg-info text-dark",
+            };
+        }
+        <span class="badge @trackingBadge">@Model.TrackingStatus</span>
+        <span class="hint">@T["Updated automatically via carrier tracking API."]</span>
+    </div>
+</div>
+
+@if (Model.HasLabel)
+{
+    <div class="ocat-wrapper">
+        <span class="ocat-label">@T["Shipping Label"]</span>
+        <div class="ocat-end">
+            <a href="#" class="btn btn-outline-secondary btn-sm" title="@T["Download label"]">
+                <i class="fa fa-download me-1" aria-hidden="true"></i>@T["Download Label"]
+            </a>
+        </div>
+    </div>
+}

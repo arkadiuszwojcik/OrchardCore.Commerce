@@ -1,0 +1,97 @@
+@model ShippingOriginPartViewModel
+
+<div class="ocat-wrapper" asp-validation-class-for="OriginName">
+    <label asp-for="OriginName" class="ocat-label ocat-label-required">@T["Origin Name"]</label>
+    <div class="ocat-end">
+        <input asp-for="OriginName" class="form-control" />
+        <span asp-validation-for="OriginName"></span>
+        <span class="hint">@T["A friendly label (e.g. 'Main Warehouse', 'Warsaw DC')."]</span>
+    </div>
+</div>
+
+<fieldset class="mb-3">
+    <legend>@T["Address"]</legend>
+
+    <div class="ocat-wrapper" asp-validation-class-for="Name">
+        <label asp-for="Name" class="ocat-label">@T["Contact Name"]</label>
+        <div class="ocat-end">
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name"></span>
+        </div>
+    </div>
+
+    <div class="ocat-wrapper" asp-validation-class-for="Company">
+        <label asp-for="Company" class="ocat-label">@T["Company"]</label>
+        <div class="ocat-end">
+            <input asp-for="Company" class="form-control" />
+            <span asp-validation-for="Company"></span>
+        </div>
+    </div>
+
+    <div class="ocat-wrapper" asp-validation-class-for="Line1">
+        <label asp-for="Line1" class="ocat-label ocat-label-required">@T["Address Line 1"]</label>
+        <div class="ocat-end">
+            <input asp-for="Line1" class="form-control" />
+            <span asp-validation-for="Line1"></span>
+        </div>
+    </div>
+
+    <div class="ocat-wrapper" asp-validation-class-for="Line2">
+        <label asp-for="Line2" class="ocat-label">@T["Address Line 2"]</label>
+        <div class="ocat-end">
+            <input asp-for="Line2" class="form-control" />
+            <span asp-validation-for="Line2"></span>
+        </div>
+    </div>
+
+    <div class="ocat-wrapper" asp-validation-class-for="City">
+        <label asp-for="City" class="ocat-label ocat-label-required">@T["City"]</label>
+        <div class="ocat-end">
+            <input asp-for="City" class="form-control" />
+            <span asp-validation-for="City"></span>
+        </div>
+    </div>
+
+    <div class="ocat-wrapper" asp-validation-class-for="Province">
+        <label asp-for="Province" class="ocat-label">@T["State / Province"]</label>
+        <div class="ocat-end">
+            <input asp-for="Province" class="form-control" />
+            <span asp-validation-for="Province"></span>
+        </div>
+    </div>
+
+    <div class="ocat-limited-wrapper" asp-validation-class-for="PostalCode">
+        <label asp-for="PostalCode" class="ocat-label ocat-label-required">@T["Postal Code"]</label>
+        <div class="ocat-limited">
+            <input asp-for="PostalCode" class="form-control" />
+            <span asp-validation-for="PostalCode"></span>
+        </div>
+    </div>
+
+    <div class="ocat-limited-wrapper" asp-validation-class-for="CountryCode">
+        <label asp-for="CountryCode" class="ocat-label ocat-label-required">@T["Country Code"]</label>
+        <div class="ocat-limited">
+            <input asp-for="CountryCode" class="form-control" placeholder="PL" maxlength="2" />
+            <span asp-validation-for="CountryCode"></span>
+            <span class="hint">@T["ISO 3166-1 alpha-2 (e.g. PL, DE, GB, US)."]</span>
+        </div>
+    </div>
+
+    <div class="ocat-wrapper" asp-validation-class-for="Phone">
+        <label asp-for="Phone" class="ocat-label">@T["Phone"]</label>
+        <div class="ocat-end">
+            <input asp-for="Phone" class="form-control" type="tel" />
+            <span asp-validation-for="Phone"></span>
+        </div>
+    </div>
+</fieldset>
+
+<div class="ocat-wrapper">
+    <div class="ocat-end-offset">
+        <div class="form-check">
+            <input asp-for="IsDefault" class="form-check-input" type="checkbox" />
+            <label asp-for="IsDefault" class="form-check-label">@T["Default origin"]</label>
+        </div>
+        <span class="hint">@T["Use as the default ship-from address when no origin is specified on the shipping method."]</span>
+    </div>
+</div>
