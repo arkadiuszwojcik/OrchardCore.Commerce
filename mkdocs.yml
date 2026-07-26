@@ -83,6 +83,9 @@ nav:
       - Exactly® Payment: features/exactly-payment.md
       - Stripe Payment: features/stripe-payment.md
     - Taxation: features/taxation.md
+    - Shipping:
+      - Overview: reference/modules/Commerce.Shipping/README.md
+      - DHL Provider: reference/modules/Commerce.Shipping.Dhl/README.md
     - User Features: features/user-features.md
     - Workflows: features/workflows.md
   - Parts and Fields:

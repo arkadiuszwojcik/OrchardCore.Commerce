@@ -11,6 +11,8 @@
   </Folder>
   <Folder Name="/docs/">
     <File Path="docs/index.md" />
+    <File Path="docs/new_module/OrchardCore-Commerce-Shipping-Design.md" />
+    <File Path="docs/new_module/OrchardCore-Commerce-Shipping-Simple-Order-Lifecycle.md" />
     <File Path="docs/requirements.txt" />
   </Folder>
   <Folder Name="/docs/features/">
@@ -65,6 +67,7 @@
     <Project Path="src/Libraries/OrchardCore.Commerce.Abstractions/OrchardCore.Commerce.Abstractions.csproj" />
     <Project Path="src/Libraries/OrchardCore.Commerce.AddressDataType/OrchardCore.Commerce.AddressDataType.csproj" />
     <Project Path="src/Libraries/OrchardCore.Commerce.MoneyDataType/OrchardCore.Commerce.MoneyDataType.csproj" />
+    <Project Path="src/Libraries/OrchardCore.Commerce.Shipping.Abstractions/OrchardCore.Commerce.Shipping.Abstractions.csproj" />
   </Folder>
   <Folder Name="/src/Modules/">
     <Project Path="src/Modules/OrchardCore.Commerce.ContentFields/OrchardCore.Commerce.ContentFields.csproj" />
@@ -73,6 +76,8 @@
     <Project Path="src/Modules/OrchardCore.Commerce.Payment.Stripe/OrchardCore.Commerce.Payment.Stripe.csproj" />
     <Project Path="src/Modules/OrchardCore.Commerce.Payment/OrchardCore.Commerce.Payment.csproj" />
     <Project Path="src/Modules/OrchardCore.Commerce.Promotion/OrchardCore.Commerce.Promotion.csproj" />
+    <Project Path="src/Modules/OrchardCore.Commerce.Shipping.Dhl/OrchardCore.Commerce.Shipping.Dhl.csproj" />
+    <Project Path="src/Modules/OrchardCore.Commerce.Shipping/OrchardCore.Commerce.Shipping.csproj" />
     <Project Path="src/Modules/OrchardCore.Commerce.Tax/OrchardCore.Commerce.Tax.csproj" />
     <Project Path="src/Modules/OrchardCore.Commerce/OrchardCore.Commerce.csproj" />
   </Folder>
@@ -81,4 +86,5 @@
     <Project Path="test/OrchardCore.Commerce.Tests.UI/OrchardCore.Commerce.Tests.UI.csproj" />
     <Project Path="test/OrchardCore.Commerce.Tests/OrchardCore.Commerce.Tests.csproj" />
   </Folder>
+  <Project Path="src/docs/OrchardCore.Docs.csproj" />
 </Solution>
