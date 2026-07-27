@@ -1,6 +1,7 @@
 using Lombiq.HelpfulLibraries.OrchardCore.Navigation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
+using OrchardCore.Commerce.Shipping.Drivers;
 using OrchardCore.Commerce.Shipping.Permissions;
 using OrchardCore.Navigation;
 
@@ -31,5 +32,9 @@ public class ShippingAdminMenu : AdminMenuNavigationProviderBase
                 .Add(T["Shipments"], T["Shipments"], entry => entry
                     .Action("List", "Admin", new { area = "OrchardCore.Contents", contentTypeId = "Shipment" })
                     .Permission(ShippingPermissions.ManageShipments)
+                    .LocalNav())
+                .Add(T["Settings"], T["Settings"], entry => entry
+                    .SiteSettings(ShippingSettingsDisplayDriver.EditorGroupId)
+                    .Permission(ShippingPermissions.ManageShippingSettings)
                     .LocalNav())));
 }

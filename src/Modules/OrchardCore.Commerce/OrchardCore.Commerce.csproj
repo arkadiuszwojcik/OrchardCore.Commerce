@@ -46,6 +46,8 @@
     <ProjectReference Include="..\OrchardCore.Commerce.Payment.Exactly\OrchardCore.Commerce.Payment.Exactly.csproj" />
     <ProjectReference Include="..\OrchardCore.Commerce.Payment\OrchardCore.Commerce.Payment.csproj" />
     <ProjectReference Include="..\OrchardCore.Commerce.Promotion\OrchardCore.Commerce.Promotion.csproj" />
+    <ProjectReference Include="..\OrchardCore.Commerce.Shipping\OrchardCore.Commerce.Shipping.csproj" />
+    <ProjectReference Include="..\OrchardCore.Commerce.Shipping.Dhl\OrchardCore.Commerce.Shipping.Dhl.csproj" />
     <ProjectReference Include="..\OrchardCore.Commerce.Tax\OrchardCore.Commerce.Tax.csproj" />
   </ItemGroup>
 

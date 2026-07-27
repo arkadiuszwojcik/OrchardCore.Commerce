@@ -1,3 +1,4 @@
+#nullable enable
 using OrchardCore.Commerce.Shipping.Abstractions;
 using System.Collections.Generic;
 using System.Linq;

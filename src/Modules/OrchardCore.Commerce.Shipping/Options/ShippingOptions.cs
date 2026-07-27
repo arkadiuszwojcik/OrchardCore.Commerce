@@ -41,4 +41,15 @@ public class ShippingOptions
     /// Default cache duration for provider rates (in minutes).
     /// </summary>
     public int DefaultRateCacheDurationMinutes { get; set; } = 15;
+
+    public void CopyTo(ShippingOptions target)
+    {
+        target.DefaultWeightUnit = DefaultWeightUnit;
+        target.DefaultDimensionUnit = DefaultDimensionUnit;
+        target.QuoteExpirationMinutes = QuoteExpirationMinutes;
+        target.QuoteValidationMode = QuoteValidationMode;
+        target.EnableTrackingWebhooks = EnableTrackingWebhooks;
+        target.EnableRateCaching = EnableRateCaching;
+        target.DefaultRateCacheDurationMinutes = DefaultRateCacheDurationMinutes;
+    }
 }

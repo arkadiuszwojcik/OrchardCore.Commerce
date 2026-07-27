@@ -1,0 +1,61 @@
+@using OrchardCore.Commerce.Shipping
+@using OrchardCore.Commerce.Shipping.Abstractions
+@model OrchardCore.Commerce.Shipping.ShippingOptions
+
+<div class="ocat-wrapper">
+    <div class="mb-3">
+        <label asp-for="DefaultWeightUnit" class="form-label">@T["Default Weight Unit"]</label>
+        <select asp-for="DefaultWeightUnit" class="form-select">
+            <option value="@WeightUnit.Gram">@T["Gram"]</option>
+            <option value="@WeightUnit.Kilogram">@T["Kilogram"]</option>
+            <option value="@WeightUnit.Ounce">@T["Ounce"]</option>
+            <option value="@WeightUnit.Pound">@T["Pound"]</option>
+        </select>
+        <span class="hint">@T["Default weight unit for products without an explicit weight setting."]</span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DefaultDimensionUnit" class="form-label">@T["Default Dimension Unit"]</label>
+        <select asp-for="DefaultDimensionUnit" class="form-select">
+            <option value="@DimensionUnit.Centimeter">@T["Centimeter"]</option>
+            <option value="@DimensionUnit.Meter">@T["Meter"]</option>
+            <option value="@DimensionUnit.Inch">@T["Inch"]</option>
+            <option value="@DimensionUnit.Foot">@T["Foot"]</option>
+        </select>
+        <span class="hint">@T["Default dimension unit for products without explicit dimension settings."]</span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="QuoteExpirationMinutes" class="form-label">@T["Quote Expiration (minutes)"]</label>
+        <input asp-for="QuoteExpirationMinutes" class="form-control" type="number" min="1" />
+        <span class="hint">@T["How long shipping quotes remain valid during checkout."]</span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="QuoteValidationMode" class="form-label">@T["Quote Validation Mode"]</label>
+        <select asp-for="QuoteValidationMode" class="form-select">
+            <option value="@ShippingQuoteValidationMode.None">@T["None — accept any quote without re-validation"]</option>
+            <option value="@ShippingQuoteValidationMode.ValidatePrice">@T["Validate Price — confirm the price has not changed"]</option>
+            <option value="@ShippingQuoteValidationMode.RefetchAndCompare">@T["Refetch and Compare — re-fetch full quote and compare all details"]</option>
+        </select>
+        <span class="hint">@T["How quotes are validated before checkout is allowed to proceed."]</span>
+    </div>
+
+    <div class="mb-3 form-check">
+        <input asp-for="EnableTrackingWebhooks" class="form-check-input" type="checkbox" />
+        <label asp-for="EnableTrackingWebhooks" class="form-check-label">@T["Enable Tracking Webhooks"]</label>
+        <span class="hint d-block">@T["Allow carriers to push tracking updates automatically via webhook."]</span>
+    </div>
+
+    <div class="mb-3 form-check">
+        <input asp-for="EnableRateCaching" class="form-check-input" type="checkbox" />
+        <label asp-for="EnableRateCaching" class="form-check-label">@T["Enable Rate Caching"]</label>
+        <span class="hint d-block">@T["Cache provider rate responses to reduce API calls."]</span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DefaultRateCacheDurationMinutes" class="form-label">@T["Rate Cache Duration (minutes)"]</label>
+        <input asp-for="DefaultRateCacheDurationMinutes" class="form-control" type="number" min="1" />
+        <span class="hint">@T["How long provider rates are cached when rate caching is enabled."]</span>
+    </div>
+</div>

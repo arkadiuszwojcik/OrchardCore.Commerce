@@ -23,7 +23,7 @@ public class ShippingMigrations : DataMigration
                 .WithDescription("Credentials and settings for a shipping carrier account.")));
 
         await _contentDefinitionManager.AlterTypeDefinitionAsync("ShippingProviderConnection", type => type
-            .DisplayedAs("Shipping Provider Connection")
+            .WithDisplayName("Shipping Provider Connection")
             .Creatable()
             .Listable()
             .Draftable()
@@ -35,7 +35,7 @@ public class ShippingMigrations : DataMigration
                 .WithDescription("Warehouse or fulfillment center address.")));
 
         await _contentDefinitionManager.AlterTypeDefinitionAsync("ShippingOrigin", type => type
-            .DisplayedAs("Shipping Origin")
+            .WithDisplayName("Shipping Origin")
             .Creatable()
             .Listable()
             .Draftable()
@@ -47,7 +47,7 @@ public class ShippingMigrations : DataMigration
                 .WithDescription("Customer-facing shipping option.")));
 
         await _contentDefinitionManager.AlterTypeDefinitionAsync("ShippingMethod", type => type
-            .DisplayedAs("Shipping Method")
+            .WithDisplayName("Shipping Method")
             .Creatable()
             .Listable()
             .Draftable()
@@ -59,7 +59,7 @@ public class ShippingMigrations : DataMigration
                 .WithDescription("Physical shipment with tracking and fulfillment information.")));
 
         await _contentDefinitionManager.AlterTypeDefinitionAsync("Shipment", type => type
-            .DisplayedAs("Shipment")
+            .WithDisplayName("Shipment")
             .Creatable()
             .Listable()
             .Draftable()
