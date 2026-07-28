@@ -28,6 +28,7 @@ See implementation plan steps 17-50:
 - [ ] **Workflows**: events (quote fetched, shipment purchased, tracking updated) and tasks
 - [ ] **Tests**: unit tests, integration tests for services and providers
 - [ ] **DHL provider module** (`OrchardCore.Commerce.Shipping.Dhl`) - skeleton implementation
+- [ ] **InPost provider module** (`OrchardCore.Commerce.Shipping.InPost`) - skeleton implementation
 - [ ] **Documentation**: MkDocs pages for configuration and provider authoring
 
 ## Design Documentation

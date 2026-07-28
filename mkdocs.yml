@@ -86,6 +86,7 @@ nav:
     - Shipping:
       - Overview: reference/modules/Commerce.Shipping/README.md
       - DHL Provider: reference/modules/Commerce.Shipping.Dhl/README.md
+      - InPost Provider: reference/modules/Commerce.Shipping.InPost/README.md
     - User Features: features/user-features.md
     - Workflows: features/workflows.md
   - Parts and Fields:

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OrchardCore.Module.Targets" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libraries\OrchardCore.Commerce.Shipping.Abstractions\OrchardCore.Commerce.Shipping.Abstractions.csproj" />
+    <ProjectReference Include="..\OrchardCore.Commerce.Shipping\OrchardCore.Commerce.Shipping.csproj" />
+  </ItemGroup>
+
+</Project>
