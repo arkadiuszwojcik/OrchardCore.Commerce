@@ -17,6 +17,7 @@
     <div class="mb-3">
         <label asp-for="DefaultDimensionUnit" class="form-label">@T["Default Dimension Unit"]</label>
         <select asp-for="DefaultDimensionUnit" class="form-select">
+            <option value="@DimensionUnit.Millimeter">@T["Millimeter"]</option>
             <option value="@DimensionUnit.Centimeter">@T["Centimeter"]</option>
             <option value="@DimensionUnit.Meter">@T["Meter"]</option>
             <option value="@DimensionUnit.Inch">@T["Inch"]</option>

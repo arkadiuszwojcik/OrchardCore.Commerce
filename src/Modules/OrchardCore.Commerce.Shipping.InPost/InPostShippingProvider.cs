@@ -116,27 +116,28 @@ public class InPostShippingProvider :
             ["not_found"] = ShipmentTrackingStatus.Unknown,
         };
 
-    private static readonly (string Template, decimal MaxLength, decimal MaxWidth, decimal MaxHeight, decimal MaxWeightKg)[] _lockerTemplates =
+    private static readonly (string Template, Dimensions MaxDimensions, Weight MaxWeight)[] _lockerTemplates =
     {
-        (InPostParcelTemplates.Small, 8m, 38m, 64m, 25m),
-        (InPostParcelTemplates.Medium, 19m, 38m, 64m, 25m),
-        (InPostParcelTemplates.Large, 41m, 38m, 64m, 25m),
+        (InPostParcelTemplates.Small, new Dimensions(8m, 38m, 64m, DimensionUnit.Centimeter), new Weight(25m, WeightUnit.Kilogram)),
+        (InPostParcelTemplates.Medium, new Dimensions(19m, 38m, 64m, DimensionUnit.Centimeter), new Weight(25m, WeightUnit.Kilogram)),
+        (InPostParcelTemplates.Large, new Dimensions(41m, 38m, 64m, DimensionUnit.Centimeter), new Weight(25m, WeightUnit.Kilogram)),
     };
 
-    private static readonly (string Template, decimal MaxLength, decimal MaxWidth, decimal MaxHeight, decimal MaxWeightKg) _xlargeTemplate =
-        (InPostParcelTemplates.XLarge, 50m, 50m, 80m, 25m);
+    private static readonly (string Template, Dimensions MaxDimensions, Weight MaxWeight) _xlargeTemplate =
+        (InPostParcelTemplates.XLarge, new Dimensions(50m, 50m, 80m, DimensionUnit.Centimeter), new Weight(25m, WeightUnit.Kilogram));
 
     // Separate template family for inpost_letter_allegro only, capped at 10 kg. letter_c does not use a bounding
     // box like letter_a/letter_b; it instead allows any shape as long as the sum of the 3 dimensions is <= 160cm
     // (handled separately in SelectLetterTemplate rather than via this table).
-    private static readonly (string Template, decimal MaxLength, decimal MaxWidth, decimal MaxHeight, decimal MaxWeightKg)[] _letterTemplates =
+    private static readonly (string Template, Dimensions MaxDimensions, Weight MaxWeight)[] _letterTemplates =
     {
-        (InPostParcelTemplates.LetterA, 8m, 38m, 64m, 10m),
-        (InPostParcelTemplates.LetterB, 19m, 38m, 64m, 10m),
+        (InPostParcelTemplates.LetterA, new Dimensions(8m, 38m, 64m, DimensionUnit.Centimeter), new Weight(10m, WeightUnit.Kilogram)),
+        (InPostParcelTemplates.LetterB, new Dimensions(19m, 38m, 64m, DimensionUnit.Centimeter), new Weight(10m, WeightUnit.Kilogram)),
     };
 
+    // The sum-of-dimensions threshold isn't itself a Dimensions triple, so it's kept as a plain centimeter value.
     private const decimal LetterCMaxDimensionSumCm = 160m;
-    private const decimal LetterMaxWeightKg = 10m;
+    private static readonly Weight LetterMaxWeight = new(10m, WeightUnit.Kilogram);
 
     // Governs how BuildParcel picks (or omits) a ShipX dimension template for a given service, per
     // docs/Rozmiary i usługi dla przesyłek.md.
@@ -457,30 +458,31 @@ public class InPostShippingProvider :
 
     private static InPostParcel BuildParcel(ShippingPackage package, string serviceId)
     {
-        var weightKg = package.TotalWeight.ConvertTo(WeightUnit.Kilogram).Value;
+        var weight = package.TotalWeight.ConvertTo(WeightUnit.Kilogram);
         InPostDimensions? dimensions = null;
         string? template = null;
 
-        if (package.Dimensions is { } dimensionsValue)
+        if (package.Dimensions is { } packageDimensions)
         {
-            var centimeters = dimensionsValue.ConvertTo(DimensionUnit.Centimeter);
-            dimensions = new InPostDimensions(centimeters.Length * 10m, centimeters.Width * 10m, centimeters.Height * 10m);
+            var centimeterDimensions = packageDimensions.ConvertTo(DimensionUnit.Centimeter);
+            var millimeterDimensions = packageDimensions.ConvertTo(DimensionUnit.Millimeter);
+            dimensions = new InPostDimensions(millimeterDimensions.Length, millimeterDimensions.Width, millimeterDimensions.Height);
 
             var strategy = GetSizingStrategy(serviceId);
             template = strategy switch
             {
                 ParcelSizingStrategy.LockerSmallMediumLarge =>
-                    SelectBoundingBoxTemplate(centimeters.Length, centimeters.Width, centimeters.Height, weightKg, _lockerTemplates),
+                    SelectBoundingBoxTemplate(centimeterDimensions, weight, _lockerTemplates),
                 ParcelSizingStrategy.LockerWithXLarge =>
-                    SelectBoundingBoxTemplate(centimeters.Length, centimeters.Width, centimeters.Height, weightKg, _lockerTemplates)
-                        ?? SelectBoundingBoxTemplate(centimeters.Length, centimeters.Width, centimeters.Height, weightKg, new[] { _xlargeTemplate }),
-                ParcelSizingStrategy.Letter => SelectLetterTemplate(centimeters.Length, centimeters.Width, centimeters.Height, weightKg),
+                    SelectBoundingBoxTemplate(centimeterDimensions, weight, _lockerTemplates)
+                        ?? SelectBoundingBoxTemplate(centimeterDimensions, weight, new[] { _xlargeTemplate }),
+                ParcelSizingStrategy.Letter => SelectLetterTemplate(centimeterDimensions, weight),
                 ParcelSizingStrategy.RawDimensionsOnly => null,
                 _ => null,
             };
         }
 
-        return new InPostParcel(new InPostWeight(weightKg), Id: package.PackageId, Template: template, Dimensions: dimensions);
+        return new InPostParcel(new InPostWeight(weight.Value), Id: package.PackageId, Template: template, Dimensions: dimensions);
     }
 
     // Picks the smallest matching dimension template (small/medium/large, or xlarge for c2c) that fits the
@@ -488,20 +490,20 @@ public class InPostShippingProvider :
     // Returns null (send raw dimensions, no template) if nothing fits - e.g. the package is oversized or
     // overweight for every template in the given set.
     private static string? SelectBoundingBoxTemplate(
-        decimal lengthCm,
-        decimal widthCm,
-        decimal heightCm,
-        decimal weightKg,
-        (string Template, decimal MaxLength, decimal MaxWidth, decimal MaxHeight, decimal MaxWeightKg)[] templates)
+        Dimensions dimensions,
+        Weight weight,
+        (string Template, Dimensions MaxDimensions, Weight MaxWeight)[] templates)
     {
-        Span<decimal> sorted = stackalloc decimal[3] { lengthCm, widthCm, heightCm };
+        var centimeterDimensions = dimensions.ConvertTo(DimensionUnit.Centimeter);
+        Span<decimal> sorted = stackalloc decimal[3] { centimeterDimensions.Length, centimeterDimensions.Width, centimeterDimensions.Height };
         sorted.Sort();
 
-        foreach (var (template, maxLength, maxWidth, maxHeight, maxWeightKg) in templates)
+        foreach (var (template, maxDimensions, maxWeight) in templates)
         {
-            if (weightKg > maxWeightKg) continue;
+            if (weight.CompareTo(maxWeight) > 0) continue;
 
-            Span<decimal> maxSorted = stackalloc decimal[3] { maxLength, maxWidth, maxHeight };
+            var maxCentimeterDimensions = maxDimensions.ConvertTo(DimensionUnit.Centimeter);
+            Span<decimal> maxSorted = stackalloc decimal[3] { maxCentimeterDimensions.Length, maxCentimeterDimensions.Width, maxCentimeterDimensions.Height };
             maxSorted.Sort();
 
             if (sorted[0] <= maxSorted[0] && sorted[1] <= maxSorted[1] && sorted[2] <= maxSorted[2])
@@ -516,16 +518,18 @@ public class InPostShippingProvider :
     // inpost_letter_allegro's own template family: letter_a/letter_b use a bounding-box fit like the locker
     // templates, but letter_c instead allows any shape as long as the sum of the 3 dimensions is <= 160cm. All
     // three are capped at 10 kg. Returns null (send raw dimensions, no template) if nothing fits.
-    private static string? SelectLetterTemplate(decimal lengthCm, decimal widthCm, decimal heightCm, decimal weightKg)
+    private static string? SelectLetterTemplate(Dimensions dimensions, Weight weight)
     {
-        if (weightKg > LetterMaxWeightKg) return null;
+        if (weight.CompareTo(LetterMaxWeight) > 0) return null;
 
-        if (SelectBoundingBoxTemplate(lengthCm, widthCm, heightCm, weightKg, _letterTemplates) is { } boundingBoxTemplate)
+        if (SelectBoundingBoxTemplate(dimensions, weight, _letterTemplates) is { } boundingBoxTemplate)
         {
             return boundingBoxTemplate;
         }
 
-        return lengthCm + widthCm + heightCm <= LetterCMaxDimensionSumCm ? InPostParcelTemplates.LetterC : null;
+        var centimeterDimensions = dimensions.ConvertTo(DimensionUnit.Centimeter);
+        var dimensionSum = centimeterDimensions.Length + centimeterDimensions.Width + centimeterDimensions.Height;
+        return dimensionSum <= LetterCMaxDimensionSumCm ? InPostParcelTemplates.LetterC : null;
     }
 
     // The candidate shipment's service code is echoed back on the calculate response element when available;

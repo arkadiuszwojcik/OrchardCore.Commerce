@@ -5,6 +5,7 @@ namespace OrchardCore.Commerce.Shipping.Abstractions;
 /// </summary>
 public enum DimensionUnit
 {
+    Millimeter,
     Centimeter,
     Meter,
     Inch,

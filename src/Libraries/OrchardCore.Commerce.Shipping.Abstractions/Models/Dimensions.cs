@@ -23,21 +23,23 @@ public sealed record Dimensions(decimal Length, decimal Width, decimal Height, D
 
     private static decimal ConvertValue(decimal value, DimensionUnit from, DimensionUnit to)
     {
-        var centimeters = from switch
+        var millimeters = from switch
         {
-            DimensionUnit.Centimeter => value,
-            DimensionUnit.Meter => value * 100m,
-            DimensionUnit.Inch => value * 2.54m,
-            DimensionUnit.Foot => value * 30.48m,
+            DimensionUnit.Millimeter => value,
+            DimensionUnit.Centimeter => value * 10m,
+            DimensionUnit.Meter => value * 1000m,
+            DimensionUnit.Inch => value * 25.4m,
+            DimensionUnit.Foot => value * 304.8m,
             _ => throw new ArgumentOutOfRangeException(nameof(from)),
         };
 
         return to switch
         {
-            DimensionUnit.Centimeter => centimeters,
-            DimensionUnit.Meter => centimeters / 100m,
-            DimensionUnit.Inch => centimeters / 2.54m,
-            DimensionUnit.Foot => centimeters / 30.48m,
+            DimensionUnit.Millimeter => millimeters,
+            DimensionUnit.Centimeter => millimeters / 10m,
+            DimensionUnit.Meter => millimeters / 1000m,
+            DimensionUnit.Inch => millimeters / 25.4m,
+            DimensionUnit.Foot => millimeters / 304.8m,
             _ => throw new ArgumentOutOfRangeException(nameof(to)),
         };
     }
@@ -56,6 +58,7 @@ public sealed record Dimensions(decimal Length, decimal Width, decimal Height, D
 
     public override string ToString() => $"{Length}×{Width}×{Height} {Unit switch
     {
+        DimensionUnit.Millimeter => "mm",
         DimensionUnit.Centimeter => "cm",
         DimensionUnit.Meter => "m",
         DimensionUnit.Inch => "in",
