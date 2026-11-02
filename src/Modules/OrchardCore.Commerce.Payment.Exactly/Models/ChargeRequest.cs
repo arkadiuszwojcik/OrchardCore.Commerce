@@ -1,5 +1,4 @@
-﻿using Lombiq.HelpfulLibraries.Common.Utilities;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -12,6 +11,7 @@ using OrchardCore.Commerce.Payment.Exactly.Services;
 using OrchardCore.Users.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -49,7 +49,7 @@ public class ChargeRequest : IExactlyRequestAttributes, IExactlyAmount
         Uri returnUrl)
     {
         if (!returnUrl.IsAbsoluteUri) throw new ArgumentException("The return URL must be absolute.", nameof(returnUrl));
-        var descriptionParts = lineItems.Select(item => StringHelper.CreateInvariant($"{item.Quantity} × {item.FullSku}"));
+        var descriptionParts = lineItems.Select(item => string.Create(CultureInfo.InvariantCulture, $"{item.Quantity} × {item.FullSku}"));
 
         ProjectId = projectId;
         ReferenceId = orderId;

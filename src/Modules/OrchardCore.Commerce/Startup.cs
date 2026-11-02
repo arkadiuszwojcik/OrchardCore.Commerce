@@ -4,11 +4,13 @@ using Lombiq.HelpfulLibraries.OrchardCore.ResourceManagement;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using OrchardCore.Commerce.Abstractions;
 using OrchardCore.Commerce.Abstractions.Abstractions;
+using OrchardCore.Commerce.Abstractions.Constants;
 using OrchardCore.Commerce.Abstractions.Fields;
 using OrchardCore.Commerce.Abstractions.Models;
 using OrchardCore.Commerce.Abstractions.TagHelpers;
@@ -44,6 +46,7 @@ using OrchardCore.ContentTypes.Editors;
 using OrchardCore.Data.Migration;
 using OrchardCore.Deployment;
 using OrchardCore.DisplayManagement.Handlers;
+using OrchardCore.Environment.Shell.Configuration;
 using OrchardCore.Liquid;
 using OrchardCore.Modules;
 using OrchardCore.Mvc.Core.Utilities;
@@ -435,4 +438,28 @@ public class SkuGeneratorGuidStartup : StartupBase
 {
     public override void ConfigureServices(IServiceCollection services) =>
         services.AddScoped<ISkuGenerator, GuidSkuGenerator>();
+}
+
+[RequireFeatures(CommerceConstants.Features.HeadersDisplayNames)]
+public class PriceDisplayNamesStartup : StartupBase
+{
+    private readonly IShellConfiguration _shellConfiguration;
+    public PriceDisplayNamesStartup(IShellConfiguration shellConfiguration) => _shellConfiguration = shellConfiguration;
+    public override void ConfigureServices(IServiceCollection services)
+    {
+        var newConfig = _shellConfiguration.GetSection(ConfigurationConstants.HeadersConfig);
+
+        if (newConfig.Exists())
+        {
+            services.Configure<HeadersDisplayNamesOptions>(newConfig);
+        }
+        else
+        {
+            var oldConfig = _shellConfiguration.GetSection(ConfigurationConstants.OldHeadersConfig);
+            if (oldConfig.Exists())
+            {
+                services.Configure<HeadersDisplayNamesOptions>(oldConfig);
+            }
+        }
+    }
 }
