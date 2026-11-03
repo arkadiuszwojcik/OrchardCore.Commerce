@@ -15,15 +15,12 @@ public class DhlShippingProvider :
     IShipmentProvider,
     IShippingTrackingProvider
 {
-    public string ProviderId => "DHL";
+    public string ProviderKey => "DHL";
 
     public ShippingProviderDescriptor GetDescriptor() =>
         new(
-            ProviderId: "DHL",
+            ProviderKey: "DHL",
             DisplayName: "DHL Express",
-            Capabilities: ShippingProviderCapabilities.RateQuotes |
-                          ShippingProviderCapabilities.PurchaseLabels |
-                          ShippingProviderCapabilities.Tracking,
             RequiredCredentialKeys: new[] { "ApiKey", "ApiSecret", "AccountNumber" },
             DocumentationUrl: "https://developer.dhl.com/api-reference/");
 

@@ -9,6 +9,7 @@ namespace OrchardCore.Commerce.Shipping.Models;
 public class ShipmentPart : ContentPart
 {
     public TextField ShipmentId { get; set; } = new();
+    public TextField IdempotencyKey { get; set; } = new();
     public TextField OrderId { get; set; } = new();
     public TextField QuoteId { get; set; } = new();
     public TextField ProviderConnectionId { get; set; } = new();

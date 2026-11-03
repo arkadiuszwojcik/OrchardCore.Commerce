@@ -10,4 +10,10 @@ public enum ShipmentPurchaseStatus
     Purchased,
     Failed,
     Cancelled,
+
+    /// <summary>
+    /// The carrier call was made but its outcome is unknown (timeout, connection loss). A shipment may exist at the
+    /// carrier; it must not be retried automatically.
+    /// </summary>
+    Uncertain,
 }

@@ -9,4 +9,8 @@ public sealed record ShippingProviderConnectionContext(
     string ConnectionId,
     IDictionary<string, string> Credentials,
     ShippingNormalizationProfile? NormalizationProfile = null,
-    IDictionary<string, object>? Metadata = null);
+    IDictionary<string, object>? Metadata = null,
+    string? ProviderKey = null,
+    long ConfigurationRevision = 0,
+    long CredentialVersion = 0,
+    bool IsTestMode = false);

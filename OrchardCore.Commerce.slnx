@@ -83,6 +83,7 @@
     <Project Path="src/Modules/OrchardCore.Commerce/OrchardCore.Commerce.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/OrchardCore.Commerce.Shipping.Tests/OrchardCore.Commerce.Shipping.Tests.csproj" />
     <Project Path="test/OrchardCore.Commerce.Tests.UI.Shortcuts/OrchardCore.Commerce.Tests.UI.Shortcuts.csproj" />
     <Project Path="test/OrchardCore.Commerce.Tests.UI/OrchardCore.Commerce.Tests.UI.csproj" />
     <Project Path="test/OrchardCore.Commerce.Tests/OrchardCore.Commerce.Tests.csproj" />

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using OrchardCore.Commerce.Shipping.Abstractions;
 using OrchardCore.Commerce.Shipping.Activities;
@@ -26,7 +27,13 @@ public class Startup : StartupBase
     public override void ConfigureServices(IServiceCollection services)
     {
         // Provider registry — collects all IShippingProvider registrations from any module
-        services.AddSingleton<IShippingProviderRegistry, ShippingProviderRegistry>();
+        services.AddScoped<IShippingProviderRegistry, ShippingProviderRegistry>();
+        services.TryAddSingleton(TimeProvider.System);
+
+        // Placeholder plain-text secrets until the Orchard Core Secrets module is available.
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<OrchardCore.Secrets.ISecretStore, Services.Secrets.PlainTextFileSecretStore>());
+        services.TryAddSingleton<OrchardCore.Secrets.ISecretManager, Services.Secrets.SecretManager>();
+        services.AddScoped<IShippingCredentialsService, ShippingCredentialsService>();
 
         // Content parts + migrations + display drivers
         services.AddContentPart<ShippingProviderConnectionPart>()
@@ -51,6 +58,7 @@ public class Startup : StartupBase
 
         // Core backend services
         services.AddScoped<IShippingRateService, ShippingRateService>();
+        services.AddScoped<IShipmentPurchaseService, ShipmentPurchaseService>();
         services.AddScoped<IShippingQuoteStore, ShippingQuoteStore>();
         services.AddScoped<IShippingPackerService, ShippingPackerService>();
         services.AddScoped<IShippingPhysicalDataResolver, ShippingPhysicalDataResolver>();

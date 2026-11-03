@@ -34,6 +34,7 @@ public class InPostApiClient
 {
     private const string ProductionBaseUrl = "https://api-shipx-pl.easypack24.net";
     private const string SandboxBaseUrl = "https://sandbox-api-shipx-pl.easypack24.net";
+    private const int MaxReadAttempts = 3;
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -151,6 +152,36 @@ public class InPostApiClient
     private async Task<JsonElement> SendAsync(
         ShippingProviderConnectionContext context, HttpMethod method, string path, object? body, CancellationToken cancellationToken)
     {
+        // Only side-effect-free calls are retried. POST /shipments and DELETE are never retried here: a lost
+        // response may hide a created shipment, which the core handles as an uncertain result.
+        var retryable = method == HttpMethod.Get || path.EndsWith("/shipments/calculate", StringComparison.Ordinal);
+        var attempts = retryable ? MaxReadAttempts : 1;
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await SendOnceAsync(context, method, path, body, cancellationToken);
+            }
+            catch (Exception exception) when (attempt < attempts && !cancellationToken.IsCancellationRequested && IsTransient(exception))
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(250 * attempt), cancellationToken);
+            }
+        }
+    }
+
+    private static bool IsTransient(Exception exception) =>
+        exception switch
+        {
+            InPostApiException api => api.StatusCode is HttpStatusCode.TooManyRequests or >= HttpStatusCode.InternalServerError,
+            HttpRequestException => true,
+            TaskCanceledException => true,
+            _ => false,
+        };
+
+    private async Task<JsonElement> SendOnceAsync(
+        ShippingProviderConnectionContext context, HttpMethod method, string path, object? body, CancellationToken cancellationToken)
+    {
         using var requestMessage = new HttpRequestMessage(method, GetBaseUrl(context) + path)
         {
             Headers = { Authorization = new AuthenticationHeaderValue("Bearer", GetApiToken(context)) },
@@ -202,14 +233,15 @@ public class InPostApiClient
     }
 
     private static bool IsSandbox(ShippingProviderConnectionContext context) =>
-        context.Metadata is not null &&
+        context.IsTestMode ||
+        (context.Metadata is not null &&
         context.Metadata.TryGetValue("IsTestMode", out var value) &&
         value switch
         {
             bool flag => flag,
             string text => bool.TryParse(text, out var parsed) && parsed,
             _ => false,
-        };
+        });
 
     private static string GetBaseUrl(ShippingProviderConnectionContext context) =>
         IsSandbox(context) ? SandboxBaseUrl : ProductionBaseUrl;

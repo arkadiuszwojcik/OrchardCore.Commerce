@@ -12,7 +12,7 @@ public interface IShippingProvider
     /// <summary>
     /// Unique identifier for this provider (e.g., "DHL", "FedEx").
     /// </summary>
-    string ProviderId { get; }
+    string ProviderKey { get; }
 
     /// <summary>
     /// Gets the descriptor metadata for this provider.

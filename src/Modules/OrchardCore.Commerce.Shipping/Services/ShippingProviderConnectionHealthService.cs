@@ -16,11 +16,17 @@ public class ShippingProviderConnectionHealthService : IShippingProviderConnecti
 {
     private readonly IContentManager _contentManager;
     private readonly IShippingProviderRegistry _providerRegistry;
+    private readonly TimeProvider _timeProvider;
+    private readonly IShippingCredentialsService _credentialsService;
 
     public ShippingProviderConnectionHealthService(
         IContentManager contentManager,
-        IShippingProviderRegistry providerRegistry)
+        IShippingProviderRegistry providerRegistry,
+        TimeProvider timeProvider,
+        IShippingCredentialsService credentialsService)
     {
+        _credentialsService = credentialsService;
+        _timeProvider = timeProvider;
         _contentManager = contentManager;
         _providerRegistry = providerRegistry;
     }
@@ -34,38 +40,25 @@ public class ShippingProviderConnectionHealthService : IShippingProviderConnecti
         {
             return new ShippingProviderConnectionHealth(
                 ShippingConnectionHealthStatus.Unknown,
-                DateTimeOffset.UtcNow,
-                "Connection content item not found.");
-        }
+                _timeProvider.GetUtcNow(),
+                "Connection content item not found.");        }
 
-        if (!connectionItem.TryGet<ShippingProviderConnectionPart>(out var part) || string.IsNullOrEmpty(part.ProviderId.Text))
+        if (!connectionItem.TryGet<ShippingProviderConnectionPart>(out var part) || string.IsNullOrEmpty(part.ProviderKey.Text))
         {
             return new ShippingProviderConnectionHealth(
                 ShippingConnectionHealthStatus.Unknown,
-                DateTimeOffset.UtcNow,
-                "No provider ID configured on connection.");
-        }
+                _timeProvider.GetUtcNow(),
+                "No provider ID configured on connection.");        }
 
-        var provider = _providerRegistry.GetProvider(part.ProviderId.Text);
+        var provider = _providerRegistry.GetProvider(part.ProviderKey.Text);
         if (provider is null)
         {
             return new ShippingProviderConnectionHealth(
                 ShippingConnectionHealthStatus.Unknown,
-                DateTimeOffset.UtcNow,
-                $"Provider '{part.ProviderId.Text}' is not registered.");
-        }
+                _timeProvider.GetUtcNow(),
+                $"Provider '{part.ProviderKey.Text}' is not registered.");        }
 
-        var credentials = new Dictionary<string, string>();
-        if (!string.IsNullOrWhiteSpace(part.CredentialsJson.Text))
-        {
-            try
-            {
-                var parsed = System.Text.Json.JsonSerializer
-                    .Deserialize<Dictionary<string, string>>(part.CredentialsJson.Text);
-                if (parsed is not null) credentials = parsed;
-            }
-            catch { /* ignore malformed JSON — provider will surface the error */ }
-        }
+        var credentials = await _credentialsService.GetCredentialsAsync(providerConnectionId);
 
         var context = new ShippingProviderConnectionContext(providerConnectionId, credentials);
         return await provider.TestConnectionAsync(context, cancellationToken);

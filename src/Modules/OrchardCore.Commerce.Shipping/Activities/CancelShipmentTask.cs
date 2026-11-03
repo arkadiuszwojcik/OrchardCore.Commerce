@@ -20,13 +20,16 @@ public class CancelShipmentTask : TaskActivity<CancelShipmentTask>
 {
     private readonly IContentManager _contentManager;
     private readonly IShippingProviderRegistry _providerRegistry;
+    private readonly Services.IShippingCredentialsService _credentialsService;
     protected readonly IStringLocalizer S;
 
     public CancelShipmentTask(
         IContentManager contentManager,
         IShippingProviderRegistry providerRegistry,
+        Services.IShippingCredentialsService credentialsService,
         IStringLocalizer<CancelShipmentTask> localizer)
     {
+        _credentialsService = credentialsService;
         _contentManager = contentManager;
         _providerRegistry = providerRegistry;
         S = localizer;
@@ -59,11 +62,10 @@ public class CancelShipmentTask : TaskActivity<CancelShipmentTask>
 
         if (!connectionItem.TryGet<ShippingProviderConnectionPart>(out var connectionPart)) return Outcomes("Failed");
 
-        if (_providerRegistry.GetProvider(connectionPart.ProviderId.Text) is not IShipmentProvider shipmentProvider)
+        if (_providerRegistry.GetProvider(connectionPart.ProviderKey.Text) is not IShipmentProvider shipmentProvider)
             return Outcomes("Failed");
 
-        var credentials = TryDeserialize<System.Collections.Generic.Dictionary<string, string>>(
-            connectionPart.CredentialsJson.Text) ?? [];
+        var credentials = await _credentialsService.GetCredentialsAsync(shipmentPart.ProviderConnectionId.Text);
 
         var context = new ShippingProviderConnectionContext(shipmentPart.ProviderConnectionId.Text, credentials);
         var cancelled = await shipmentProvider.CancelShipmentAsync(context, shipmentPart.ShipmentId.Text ?? string.Empty);

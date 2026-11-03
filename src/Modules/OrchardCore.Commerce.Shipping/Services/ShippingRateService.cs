@@ -26,14 +26,20 @@ public class ShippingRateService : IShippingRateService
     private readonly IShippingRateCache _rateCache;
     private readonly IShippingQuoteStore _quoteStore;
     private readonly ShippingOptions _options;
+    private readonly TimeProvider _timeProvider;
+    private readonly IShippingCredentialsService _credentialsService;
 
     public ShippingRateService(
         IContentManager contentManager,
         IShippingProviderRegistry providerRegistry,
         IShippingRateCache rateCache,
         IShippingQuoteStore quoteStore,
-        IOptionsSnapshot<ShippingOptions> options)
+        IOptionsSnapshot<ShippingOptions> options,
+        TimeProvider timeProvider,
+        IShippingCredentialsService credentialsService)
     {
+        _credentialsService = credentialsService;
+        _timeProvider = timeProvider;
         _contentManager = contentManager;
         _providerRegistry = providerRegistry;
         _rateCache = rateCache;
@@ -64,17 +70,23 @@ public class ShippingRateService : IShippingRateService
         if (!connectionItem.TryGet<ShippingProviderConnectionPart>(out var connectionPart) || !connectionPart.IsEnabled.Value) return Array.Empty<ShippingQuote>();
 
         // 3. Resolve provider.
-        var providerId = connectionPart.ProviderId.Text;
-        if (string.IsNullOrEmpty(providerId)) return Array.Empty<ShippingQuote>();
+        var providerKey = connectionPart.ProviderKey.Text;
+        if (string.IsNullOrEmpty(providerKey)) return Array.Empty<ShippingQuote>();
 
-        if (_providerRegistry.GetProvider(providerId) is not IShippingRateProvider rateProvider)
+        if (_providerRegistry.GetProvider(providerKey) is not IShippingRateProvider rateProvider)
         {
             return Array.Empty<ShippingQuote>();
         }
 
-        // 4. Build connection context from stored credentials JSON.
-        var credentials = DeserializeCredentials(connectionPart.CredentialsJson.Text);
-        var context = new ShippingProviderConnectionContext(connectionId, credentials);
+        // 4. Build connection context from the connection's stored secrets.
+        var credentials = await _credentialsService.GetCredentialsAsync(connectionId);
+        var context = new ShippingProviderConnectionContext(
+            connectionId,
+            credentials,
+            ProviderKey: providerKey,
+            ConfigurationRevision: (long)(connectionPart.ConfigurationRevision.Value ?? 0),
+            CredentialVersion: (long)(connectionPart.CredentialVersion.Value ?? 0),
+            IsTestMode: connectionPart.IsTestMode.Value);
 
         // 5. Build cache key and try cache.
         var cachePolicy = rateProvider.GetRateCachePolicy();
@@ -82,25 +94,20 @@ public class ShippingRateService : IShippingRateService
 
         if (_options.EnableRateCaching && cachePolicy.EnableCaching)
         {
-            var cacheKey = BuildCacheKey(connectionId, originAddress, destinationAddress, packages, cachePolicy);
-            cachedRates = await _rateCache.TryGetAsync(cacheKey, cancellationToken);
-
-            if (cachedRates is null)
+            var cacheKey = BuildCacheKey(context, originAddress, destinationAddress, packages, cachePolicy);
+            var request = new ProviderRateRequest(connectionId, originAddress, destinationAddress, packages);
+            var effectivePolicy = cachePolicy with
             {
-                // 6. Fetch from provider and cache.
-                var request = new ProviderRateRequest(connectionId, originAddress, destinationAddress, packages);
-                var freshRates = await rateProvider.GetRatesAsync(context, request, cancellationToken);
+                CacheDuration = cachePolicy.CacheDuration > TimeSpan.Zero
+                    ? cachePolicy.CacheDuration
+                    : TimeSpan.FromMinutes(_options.DefaultRateCacheDurationMinutes),
+            };
 
-                var effectivePolicy = cachePolicy with
-                {
-                    CacheDuration = cachePolicy.CacheDuration > TimeSpan.Zero
-                        ? cachePolicy.CacheDuration
-                        : TimeSpan.FromMinutes(_options.DefaultRateCacheDurationMinutes),
-                };
-
-                await _rateCache.SetAsync(cacheKey, freshRates, effectivePolicy, cancellationToken);
-                cachedRates = freshRates;
-            }
+            cachedRates = await _rateCache.GetOrCreateAsync(
+                cacheKey,
+                effectivePolicy,
+                ct => rateProvider.GetRatesAsync(context, request, ct),
+                cancellationToken);
         }
         else
         {
@@ -110,7 +117,7 @@ public class ShippingRateService : IShippingRateService
 
         // 7. Map provider rates to ShippingQuotes, filtering by optional ServiceId.
         var serviceFilter = methodPart.ServiceId.Text;
-        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_options.QuoteExpirationMinutes);
+        var expiresAt = _timeProvider.GetUtcNow().AddMinutes(_options.QuoteExpirationMinutes);
 
         var quotes = cachedRates
             .Where(r => string.IsNullOrEmpty(serviceFilter) || r.ServiceId == serviceFilter)
@@ -148,7 +155,7 @@ public class ShippingRateService : IShippingRateService
         if (quote is null) return false;
 
         // Check expiry.
-        if (quote.ExpiresAt.HasValue && DateTimeOffset.UtcNow > quote.ExpiresAt.Value)
+        if (quote.ExpiresAt.HasValue && _timeProvider.GetUtcNow() > quote.ExpiresAt.Value)
         {
             return false;
         }
@@ -169,29 +176,17 @@ public class ShippingRateService : IShippingRateService
         return fresh.Any(r => r.ServiceId == quote.ServiceId && r.TotalPrice == quote.TotalPrice);
     }
 
-    private static IDictionary<string, string> DeserializeCredentials(string? json)
-    {
-        if (string.IsNullOrWhiteSpace(json)) return new Dictionary<string, string>();
-
-        try
-        {
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(json)
-                ?? new Dictionary<string, string>();
-        }
-        catch
-        {
-            return new Dictionary<string, string>();
-        }
-    }
-
     private static string BuildCacheKey(
-        string connectionId,
+        ShippingProviderConnectionContext connection,
         AddressSnapshot origin,
         AddressSnapshot destination,
         IReadOnlyList<ShippingPackage> packages,
         ProviderRateCachePolicy policy)
     {
-        var sb = new StringBuilder(connectionId);
+        var sb = new StringBuilder(connection.ConnectionId);
+        sb.Append('|').Append(connection.ProviderKey)
+            .Append('|').Append(connection.ConfigurationRevision)
+            .Append('|').Append(connection.CredentialVersion);
 
         if (policy.CacheByAddress)
         {

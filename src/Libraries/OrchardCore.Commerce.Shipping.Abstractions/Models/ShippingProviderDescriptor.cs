@@ -6,9 +6,8 @@ namespace OrchardCore.Commerce.Shipping.Abstractions;
 /// Descriptor metadata for a shipping provider (name, capabilities, required credentials).
 /// </summary>
 public sealed record ShippingProviderDescriptor(
-    string ProviderId,
+    string ProviderKey,
     string DisplayName,
-    ShippingProviderCapabilities Capabilities,
     IReadOnlyList<string> RequiredCredentialKeys,
     string? ProviderIconUrl = null,
     string? DocumentationUrl = null,

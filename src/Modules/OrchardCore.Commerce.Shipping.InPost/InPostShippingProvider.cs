@@ -179,17 +179,12 @@ public class InPostShippingProvider :
         _logger = logger;
     }
 
-    public string ProviderId => "InPost";
+    public string ProviderKey => "InPost";
 
     public ShippingProviderDescriptor GetDescriptor() =>
         new(
-            ProviderId: "InPost",
+            ProviderKey: "InPost",
             DisplayName: "InPost",
-            Capabilities: ShippingProviderCapabilities.RateQuotes |
-                          ShippingProviderCapabilities.PurchaseLabels |
-                          ShippingProviderCapabilities.Tracking |
-                          ShippingProviderCapabilities.PickupPoints |
-                          ShippingProviderCapabilities.CancelShipment,
             RequiredCredentialKeys: new[] { "ApiToken", "OrganizationId" },
             DocumentationUrl: null);
 
@@ -300,12 +295,19 @@ public class InPostShippingProvider :
             request.Packages,
             request.ServiceId,
             request.PickupPoint?.PickupPointId,
-            reference: request.OrderId);
+            reference: BuildReference(request));
 
         InPostShipmentResponse? created;
         try
         {
             created = await _apiClient.CreateShipmentAsync(context, shipmentRequest, cancellationToken);
+        }
+        catch (InPostApiException exception) when (exception.StatusCode is >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError
+            && exception.StatusCode != HttpStatusCode.RequestTimeout && exception.StatusCode != HttpStatusCode.TooManyRequests)
+        {
+            // A definite 4xx: ShipX refused the request, so no shipment exists and retrying is safe.
+            _logger.LogWarning(exception, "InPost ShipX shipment purchase was rejected for order {OrderId}.", request.OrderId);
+            throw new ShippingProviderRejectedException(exception.Message, exception);
         }
         catch (InPostApiException exception)
         {
@@ -334,6 +336,15 @@ public class InPostShippingProvider :
                 : null,
             ActualCost: actualCost,
             Metadata: created.Status is { } status ? new Dictionary<string, object> { ["Status"] = status } : null);
+    }
+
+    private static string BuildReference(ShipmentPurchaseRequest request)
+    {
+        // The idempotency key goes into the carrier reference so an uncertain purchase can be found by reference.
+        var reference = string.IsNullOrEmpty(request.IdempotencyKey)
+            ? request.OrderId
+            : $"{request.OrderId}/{request.IdempotencyKey}";
+        return reference.Length <= 100 ? reference : reference[..100];
     }
 
     public async Task<bool> CancelShipmentAsync(

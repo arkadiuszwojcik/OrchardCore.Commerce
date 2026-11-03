@@ -9,17 +9,17 @@
     </div>
 </div>
 
-<div class="ocat-limited-wrapper" asp-validation-class-for="ProviderId">
-    <label asp-for="ProviderId" class="ocat-label ocat-label-required">@T["Provider"]</label>
+<div class="ocat-limited-wrapper" asp-validation-class-for="ProviderKey">
+    <label asp-for="ProviderKey" class="ocat-label ocat-label-required">@T["Provider"]</label>
     <div class="ocat-limited">
-        <select asp-for="ProviderId" class="form-select">
+        <select asp-for="ProviderKey" class="form-select">
             <option value="">— @T["Select provider"] —</option>
-            @foreach (var pid in Model.AvailableProviderIds)
+            @foreach (var pid in Model.AvailableProviderKeys)
             {
-                <option value="@pid" selected="@(Model.ProviderId == pid ? "selected" : null)">@pid</option>
+                <option value="@pid" selected="@(Model.ProviderKey == pid ? "selected" : null)">@pid</option>
             }
         </select>
-        <span asp-validation-for="ProviderId"></span>
+        <span asp-validation-for="ProviderKey"></span>
         <span class="hint">@T["The shipping carrier this connection authenticates with."]</span>
     </div>
 </div>
@@ -29,7 +29,11 @@
     <div class="ocat-end">
         <textarea asp-for="CredentialsJson" class="form-control code" rows="5" placeholder="{&quot;ApiKey&quot;:&quot;…&quot;,&quot;ApiSecret&quot;:&quot;…&quot;,&quot;AccountNumber&quot;:&quot;…&quot;}"></textarea>
         <span asp-validation-for="CredentialsJson"></span>
-        <span class="hint">@T["Provider credentials as JSON. Stored encrypted at rest. Required keys depend on the chosen provider."]</span>
+        <span class="hint">@T["Provider credentials as a JSON object. Stored as a secret, never shown again. Leave blank to keep the current value."]</span>
+                @if (Model.HasStoredCredentials)
+                {
+                    <span class="hint">@T["Credentials are currently stored for this connection."]</span>
+                }
     </div>
 </div>
 

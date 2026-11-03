@@ -33,7 +33,8 @@ public sealed record ShipmentPurchaseRequest(
     PickupPointSnapshot? PickupPoint = null,
     DateTimeOffset? ShipDate = null,
     IReadOnlyList<ShippingExtensionConfiguration>? Extensions = null,
-    IDictionary<string, object>? Metadata = null);
+    IDictionary<string, object>? Metadata = null,
+    string? IdempotencyKey = null);
 
 /// <summary>
 /// Provider capability for creating and managing shipments.

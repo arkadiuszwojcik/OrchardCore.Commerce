@@ -7,7 +7,7 @@ namespace OrchardCore.Commerce.Shipping.Abstractions;
 /// Context for an incoming webhook.
 /// </summary>
 public sealed record ShippingWebhookContext(
-    string ProviderId,
+    string ProviderKey,
     string WebhookEventType,
     string RawPayload,
     string? Signature = null);

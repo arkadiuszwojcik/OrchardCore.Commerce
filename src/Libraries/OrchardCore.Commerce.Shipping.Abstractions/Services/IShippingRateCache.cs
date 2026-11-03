@@ -24,4 +24,14 @@ public interface IShippingRateCache
         IReadOnlyList<ProviderShippingRate> rates,
         ProviderRateCachePolicy policy,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns cached rates or runs <paramref name="factory"/> once per key at a time (single-flight). Failures and
+    /// empty results are never cached.
+    /// </summary>
+    Task<IReadOnlyList<ProviderShippingRate>> GetOrCreateAsync(
+        string cacheKey,
+        ProviderRateCachePolicy policy,
+        System.Func<CancellationToken, Task<IReadOnlyList<ProviderShippingRate>>> factory,
+        CancellationToken cancellationToken = default);
 }

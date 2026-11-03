@@ -108,67 +108,22 @@ public static class ShipmentsEndpoint
         [FromRoute] string shipmentId,
         [FromServices] IAuthorizationService authorizationService,
         [FromServices] IContentManager contentManager,
-        [FromServices] IShippingProviderRegistry providerRegistry,
-        [FromServices] IShippingDocumentStore documentStore,
+        [FromServices] Services.IShipmentPurchaseService purchaseService,
         HttpContext httpContext)
     {
         if (!await authorizationService.AuthorizeAsync(httpContext.User, ShippingPermissions.ManageShipments))
             return httpContext.ChallengeOrForbidApi();
 
-        var shipmentItem = await contentManager.GetAsync(shipmentId);
-        if (shipmentItem is null) return TypedResults.NotFound();
-
-        if (!shipmentItem.TryGet<ShipmentPart>(out var shipmentPart))
-            return TypedResults.BadRequest("Not a shipment content item.");
-
-        var connectionItem = await contentManager.GetAsync(shipmentPart.ProviderConnectionId.Text);
-        if (connectionItem is null) return TypedResults.BadRequest("Provider connection not found.");
-
-        if (!connectionItem.TryGet<ShippingProviderConnectionPart>(out var connectionPart))
-            return TypedResults.BadRequest("Invalid provider connection.");
-
-        if (providerRegistry.GetProvider(connectionPart.ProviderId.Text) is not IShipmentProvider provider)
-            return TypedResults.BadRequest("Provider not registered or does not support label purchase.");
-
-        var credentials = TryDeserializeDict(connectionPart.CredentialsJson.Text);
-        var origin = TryDeserialize<AddressSnapshot>(shipmentPart.OriginAddressJson.Text);
-        var destination = TryDeserialize<AddressSnapshot>(shipmentPart.DestinationAddressJson.Text);
-        var packages = TryDeserialize<System.Collections.Generic.List<ShippingPackage>>(shipmentPart.PackagesJson.Text)
-            as System.Collections.Generic.IReadOnlyList<ShippingPackage>
-            ?? System.Array.Empty<ShippingPackage>();
-
-        if (origin is null || destination is null)
-            return TypedResults.BadRequest("Origin or destination address missing.");
-
-        var context = new ShippingProviderConnectionContext(shipmentPart.ProviderConnectionId.Text, credentials);
-        var purchaseRequest = new ShipmentPurchaseRequest(
-            OrderId: shipmentPart.OrderId.Text ?? string.Empty,
-            QuoteId: shipmentPart.QuoteId.Text ?? string.Empty,
-            OriginAddress: origin,
-            DestinationAddress: destination,
-            Packages: packages,
-            ServiceId: shipmentPart.ServiceId.Text ?? string.Empty);
-
-        var response = await provider.PurchaseShipmentAsync(context, purchaseRequest);
-
-        if (response.LabelData is { Length: > 0 })
+        var result = await purchaseService.PurchaseAsync(shipmentId, httpContext.RequestAborted);
+        return result.Outcome switch
         {
-            var documentId = await documentStore.StoreDocumentAsync(
-                shipmentId, response.LabelFormat ?? "PDF", response.LabelData);
-            shipmentPart.LabelDocumentId = new OrchardCore.ContentFields.Fields.TextField { Text = documentId };
-        }
-
-        shipmentPart.TrackingNumber = new OrchardCore.ContentFields.Fields.TextField { Text = response.TrackingNumber };
-        shipmentPart.TrackingUrl = new OrchardCore.ContentFields.Fields.TextField { Text = response.TrackingUrl };
-        shipmentPart.PurchaseStatus = new OrchardCore.ContentFields.Fields.TextField
-        {
-            Text = ShipmentPurchaseStatus.Purchased.ToString(),
+            Services.ShipmentPurchaseOutcome.Purchased or Services.ShipmentPurchaseOutcome.AlreadyPurchased =>
+                (IResult)TypedResults.Ok(new { result.TrackingNumber, result.TrackingUrl }),
+            Services.ShipmentPurchaseOutcome.NotFound => TypedResults.NotFound(),
+            Services.ShipmentPurchaseOutcome.Blocked or Services.ShipmentPurchaseOutcome.Uncertain =>
+                TypedResults.Conflict(result.Message),
+            _ => TypedResults.BadRequest(result.Message),
         };
-        shipmentItem.Apply(shipmentPart);
-        await contentManager.UpdateAsync(shipmentItem);
-        await contentManager.PublishAsync(shipmentItem);
-
-        return TypedResults.Ok(new { response.TrackingNumber, response.TrackingUrl });
     }
 
     private static async Task<IResult> CancelShipmentAsync(
@@ -176,6 +131,7 @@ public static class ShipmentsEndpoint
         [FromServices] IAuthorizationService authorizationService,
         [FromServices] IContentManager contentManager,
         [FromServices] IShippingProviderRegistry providerRegistry,
+        [FromServices] Services.IShippingCredentialsService credentialsService,
         HttpContext httpContext)
     {
         if (!await authorizationService.AuthorizeAsync(httpContext.User, ShippingPermissions.ManageShipments))
@@ -189,11 +145,11 @@ public static class ShipmentsEndpoint
         ShippingProviderConnectionPart? connectionPart = null;
         connectionItem?.TryGet<ShippingProviderConnectionPart>(out connectionPart);
 
-        if (connectionPart is null || providerRegistry.GetProvider(connectionPart.ProviderId.Text) is not IShipmentProvider provider)
+        if (connectionPart is null || providerRegistry.GetProvider(connectionPart.ProviderKey.Text) is not IShipmentProvider provider)
             return TypedResults.BadRequest("Provider not available.");
 
-        var credentials = TryDeserializeDict(connectionPart.CredentialsJson.Text);
-        var context = new ShippingProviderConnectionContext(shipmentPart!.ProviderConnectionId.Text, credentials);
+        var credentials = await credentialsService.GetCredentialsAsync(shipmentPart!.ProviderConnectionId.Text);
+        var context = new ShippingProviderConnectionContext(shipmentPart.ProviderConnectionId.Text, credentials);
         var cancelled = await provider.CancelShipmentAsync(context, shipmentPart.ShipmentId.Text ?? string.Empty);
 
         if (cancelled)

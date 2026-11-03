@@ -8,9 +8,10 @@ namespace OrchardCore.Commerce.Shipping.Models;
 /// </summary>
 public class ShippingProviderConnectionPart : ContentPart
 {
-    public TextField ProviderId { get; set; } = new();
+    public TextField ProviderKey { get; set; } = new();
     public TextField ConnectionName { get; set; } = new();
-    public TextField CredentialsJson { get; set; } = new();
+    public NumericField ConfigurationRevision { get; set; } = new();
+    public NumericField CredentialVersion { get; set; } = new();
     public TextField MetadataJson { get; set; } = new();
     public BooleanField IsEnabled { get; set; } = new();
     public BooleanField IsTestMode { get; set; } = new();
