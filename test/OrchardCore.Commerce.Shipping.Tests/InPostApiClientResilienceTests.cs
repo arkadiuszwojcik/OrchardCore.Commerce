@@ -1,5 +1,8 @@
+using Microsoft.Extensions.DependencyInjection;
 using OrchardCore.Commerce.Shipping.Abstractions;
+using OrchardCore.Commerce.Shipping.InPost;
 using OrchardCore.Commerce.Shipping.InPost.Client;
+using OrchardCore.Commerce.Shipping.InPost.Client.Models;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -29,11 +32,43 @@ public class InPostApiClientResilienceTests
         }
     }
 
+    private static InPostShipmentRequest CreateRequest() => new(new InPostContact("A", "B", "a@b.c", "123", new InPostAddress("S", "1", "C", "00-001", "PL")), [], "inpost_locker_standard", new InPostCustomAttributes("parcel_locker"));
+
+    private static InPostApiClient CreateClient(HttpMessageHandler handler)
+    {
+        var services = new ServiceCollection();
+        services.AddInPostApiClient().ConfigurePrimaryHttpMessageHandler(() => handler);
+        return services.BuildServiceProvider().GetRequiredService<InPostApiClient>();
+    }
+
+    [Fact]
+    public async Task CreateShipmentIsNeverRetried()
+    {
+        using var handler = new SequenceHandler(HttpStatusCode.ServiceUnavailable, HttpStatusCode.OK);
+        var client = CreateClient(handler);
+
+        await Assert.ThrowsAsync<InPostApiException>(() =>
+            client.CreateShipmentAsync(_context, CreateRequest(), TestContext.Current.CancellationToken));
+
+        Assert.Equal(1, handler.Calls);
+    }
+
+    [Fact]
+    public async Task CalculatePricesIsRetriedOnTransientServerError()
+    {
+        using var handler = new SequenceHandler(HttpStatusCode.ServiceUnavailable, HttpStatusCode.OK);
+        var client = CreateClient(handler);
+
+        await client.CalculatePricesAsync(_context, [CreateRequest()], TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, handler.Calls);
+    }
+
     [Fact]
     public async Task ReadCallIsRetriedOnTransientServerError()
     {
-        var handler = new SequenceHandler(HttpStatusCode.ServiceUnavailable, HttpStatusCode.OK);
-        var client = new InPostApiClient(new HttpClient(handler));
+        using var handler = new SequenceHandler(HttpStatusCode.ServiceUnavailable, HttpStatusCode.OK);
+        var client = CreateClient(handler);
 
         await client.GetOrganizationAsync(_context, TestContext.Current.CancellationToken);
 
@@ -43,8 +78,8 @@ public class InPostApiClientResilienceTests
     [Fact]
     public async Task ReadCallDoesNotRetryClientError()
     {
-        var handler = new SequenceHandler(HttpStatusCode.Unauthorized);
-        var client = new InPostApiClient(new HttpClient(handler));
+        using var handler = new SequenceHandler(HttpStatusCode.Unauthorized);
+        var client = CreateClient(handler);
 
         await Assert.ThrowsAsync<InPostApiException>(() =>
             client.GetOrganizationAsync(_context, TestContext.Current.CancellationToken));
@@ -55,8 +90,8 @@ public class InPostApiClientResilienceTests
     [Fact]
     public async Task WriteCallIsNeverRetried()
     {
-        var handler = new SequenceHandler(HttpStatusCode.ServiceUnavailable, HttpStatusCode.OK);
-        var client = new InPostApiClient(new HttpClient(handler));
+        using var handler = new SequenceHandler(HttpStatusCode.ServiceUnavailable, HttpStatusCode.OK);
+        var client = CreateClient(handler);
 
         await Assert.ThrowsAsync<InPostApiException>(() =>
             client.CancelShipmentAsync(_context, "1", TestContext.Current.CancellationToken));

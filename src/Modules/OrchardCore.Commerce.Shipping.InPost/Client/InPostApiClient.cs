@@ -1,12 +1,10 @@
 using OrchardCore.Commerce.Shipping.Abstractions;
 using OrchardCore.Commerce.Shipping.InPost.Client.Models;
+using Refit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
+using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +12,9 @@ using System.Threading.Tasks;
 namespace OrchardCore.Commerce.Shipping.InPost.Client;
 
 /// <summary>
-/// Thin HTTP client for the InPost ShipX REST API. Base URLs, authentication, endpoint paths, request/response
-/// shapes and the error-envelope convention are grounded in the two reference PHP plugins
-/// (inpost-for-woocommerce, inpostshipping-presta), not guessed:
+/// Facade over the Refit-based <see cref="IInPostApi"/> for the InPost ShipX REST API. Base URLs, authentication,
+/// endpoint paths, request/response shapes and the error-envelope convention are grounded in the two reference PHP
+/// plugins (inpost-for-woocommerce, inpostshipping-presta), not guessed:
 /// <list type="bullet">
 /// <item>Base URLs: production <c>https://api-shipx-pl.easypack24.net</c>, sandbox
 /// <c>https://sandbox-api-shipx-pl.easypack24.net</c> (confirmed independently in both plugins).</item>
@@ -26,37 +24,25 @@ namespace OrchardCore.Commerce.Shipping.InPost.Client;
 /// <item>List endpoints (points, shipments) return <c>{"items": [...], ...}</c> or a bare array
 /// (<c>GetAllTrait</c>/<c>ShipXCollection</c>, PrestaShop plugin).</item>
 /// </list>
+/// Authentication, base URL selection and error mapping are handled by <see cref="InPostConnectionHandler"/>; retries
+/// by the resilience handler registered in <see cref="ServiceCollectionExtensions.AddInPostApiClient"/>.
 /// The exact JSON shape of shipment "offers" (as returned by <c>/shipments/calculate</c>) was not directly
 /// observable in the PHP source (that code only forwards the raw response), so it is exposed here as a raw
 /// <see cref="JsonElement"/> for the caller to parse defensively.
 /// </summary>
 public class InPostApiClient
 {
-    private const string ProductionBaseUrl = "https://api-shipx-pl.easypack24.net";
-    private const string SandboxBaseUrl = "https://sandbox-api-shipx-pl.easypack24.net";
-    private const int MaxReadAttempts = 3;
+    private readonly IInPostApi _api;
 
-    private static readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-    };
-
-    private readonly HttpClient _httpClient;
-
-    public InPostApiClient(HttpClient httpClient) => _httpClient = httpClient;
+    public InPostApiClient(IInPostApi api) => _api = api;
 
     /// <summary>
     /// <c>GET /v1/organizations/{organizationId}</c> - used to validate that the configured API token and
     /// organization ID are valid (see <see cref="OrchardCore.Commerce.Shipping.InPost.InPostShippingProvider.TestConnectionAsync"/>).
     /// </summary>
-    public async Task<InPostOrganization?> GetOrganizationAsync(
-        ShippingProviderConnectionContext context, CancellationToken cancellationToken)
-    {
-        var organizationId = GetOrganizationId(context);
-        var json = await SendAsync(context, HttpMethod.Get, $"/v1/organizations/{organizationId}", body: null, cancellationToken);
-        return Deserialize<InPostOrganization>(json);
-    }
+    public Task<InPostOrganization?> GetOrganizationAsync(
+        ShippingProviderConnectionContext context, CancellationToken cancellationToken) =>
+        UnwrapAsync(() => _api.GetOrganizationAsync(InPostConnection.GetOrganizationId(context), context, cancellationToken));
 
     /// <summary>
     /// <c>POST /v1/organizations/{organizationId}/shipments/calculate</c> with body <c>{"shipments": [...]}</c>.
@@ -68,36 +54,30 @@ public class InPostApiClient
         IReadOnlyList<InPostShipmentRequest> shipments,
         CancellationToken cancellationToken)
     {
-        var organizationId = GetOrganizationId(context);
-        var body = new { shipments };
-        var json = await SendAsync(
-            context, HttpMethod.Post, $"/v1/organizations/{organizationId}/shipments/calculate", body, cancellationToken);
+        var json = await UnwrapAsync(() => _api.CalculatePricesAsync(
+            InPostConnection.GetOrganizationId(context), new InPostCalculateRequest(shipments), context, cancellationToken));
         return ExtractArray(json, "shipments");
     }
 
     /// <summary>
     /// <c>POST /v1/organizations/{organizationId}/shipments</c> - creates (purchases) a shipment.
     /// </summary>
-    public async Task<InPostShipmentResponse?> CreateShipmentAsync(
+    public Task<InPostShipmentResponse?> CreateShipmentAsync(
         ShippingProviderConnectionContext context,
         InPostShipmentRequest shipment,
-        CancellationToken cancellationToken)
-    {
-        var organizationId = GetOrganizationId(context);
-        var json = await SendAsync(
-            context, HttpMethod.Post, $"/v1/organizations/{organizationId}/shipments", shipment, cancellationToken);
-        return Deserialize<InPostShipmentResponse>(json);
-    }
+        CancellationToken cancellationToken) =>
+        UnwrapAsync(() => _api.CreateShipmentAsync(InPostConnection.GetOrganizationId(context), shipment, context, cancellationToken));
 
     /// <summary>
     /// <c>DELETE /v1/organizations/{organizationId}/shipments/{shipmentId}</c>. ShipX only allows this while the
     /// shipment has not yet been confirmed/dispatched; a rejection surfaces as an <see cref="InPostApiException"/>.
     /// </summary>
-    public Task CancelShipmentAsync(ShippingProviderConnectionContext context, string shipmentId, CancellationToken cancellationToken)
-    {
-        var organizationId = GetOrganizationId(context);
-        return SendAsync(context, HttpMethod.Delete, $"/v1/organizations/{organizationId}/shipments/{shipmentId}", body: null, cancellationToken);
-    }
+    public Task CancelShipmentAsync(ShippingProviderConnectionContext context, string shipmentId, CancellationToken cancellationToken) =>
+        UnwrapAsync(async () =>
+        {
+            await _api.CancelShipmentAsync(InPostConnection.GetOrganizationId(context), shipmentId, context, cancellationToken);
+            return 0;
+        });
 
     /// <summary>
     /// There is no dedicated "track by tracking number" endpoint in either reference plugin; both poll the
@@ -108,9 +88,8 @@ public class InPostApiClient
     public async Task<InPostShipmentResponse?> FindShipmentByTrackingNumberAsync(
         ShippingProviderConnectionContext context, string trackingNumber, CancellationToken cancellationToken)
     {
-        var organizationId = GetOrganizationId(context);
-        var path = $"/v1/organizations/{organizationId}/shipments?tracking_number={Uri.EscapeDataString(trackingNumber)}";
-        var json = await SendAsync(context, HttpMethod.Get, path, body: null, cancellationToken);
+        var json = await UnwrapAsync(() => _api.FindShipmentsByTrackingNumberAsync(
+            InPostConnection.GetOrganizationId(context), trackingNumber, context, cancellationToken));
         var items = ExtractArray(json, "items");
         return items.Count > 0 ? Deserialize<InPostShipmentResponse>(items[0]) : null;
     }
@@ -123,16 +102,28 @@ public class InPostApiClient
     public async Task<IReadOnlyList<JsonElement>> SearchPointsAsync(
         ShippingProviderConnectionContext context, IDictionary<string, string> query, CancellationToken cancellationToken)
     {
-        var queryString = string.Join(
-            "&", query.Select(pair => $"{Uri.EscapeDataString(pair.Key)}={Uri.EscapeDataString(pair.Value)}"));
-        var path = queryString.Length > 0 ? $"/v1/points?{queryString}" : "/v1/points";
-        var json = await SendAsync(context, HttpMethod.Get, path, body: null, cancellationToken);
+        var json = await UnwrapAsync(() => _api.SearchPointsAsync(query, context, cancellationToken));
         return ExtractArray(json, "items");
+    }
+
+    // Refit wraps exceptions thrown by the HTTP pipeline in ApiRequestException; callers expect the original ones
+    // (InPostApiException in particular).
+    private static async Task<T> UnwrapAsync<T>(Func<Task<T>> call)
+    {
+        try
+        {
+            return await call();
+        }
+        catch (ApiRequestException exception) when (exception.InnerException is { } inner)
+        {
+            ExceptionDispatchInfo.Capture(inner).Throw();
+            throw;
+        }
     }
 
     private static T? Deserialize<T>(JsonElement json)
         where T : class =>
-        json.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null ? null : json.Deserialize<T>(_jsonOptions);
+        json.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null ? null : json.Deserialize<T>(InPostJson.Options);
 
     // Collection endpoints wrap results as {"<propertyName>": [...]} (e.g. "items" for GetAllTrait-based
     // resources, "shipments" for /calculate which mirrors its own request envelope), falling back to a bare
@@ -148,112 +139,4 @@ public class InPostApiClient
 
         return json.ValueKind == JsonValueKind.Array ? json.EnumerateArray().ToList() : Array.Empty<JsonElement>();
     }
-
-    private async Task<JsonElement> SendAsync(
-        ShippingProviderConnectionContext context, HttpMethod method, string path, object? body, CancellationToken cancellationToken)
-    {
-        // Only side-effect-free calls are retried. POST /shipments and DELETE are never retried here: a lost
-        // response may hide a created shipment, which the core handles as an uncertain result.
-        var retryable = method == HttpMethod.Get || path.EndsWith("/shipments/calculate", StringComparison.Ordinal);
-        var attempts = retryable ? MaxReadAttempts : 1;
-
-        for (var attempt = 1; ; attempt++)
-        {
-            try
-            {
-                return await SendOnceAsync(context, method, path, body, cancellationToken);
-            }
-            catch (Exception exception) when (attempt < attempts && !cancellationToken.IsCancellationRequested && IsTransient(exception))
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(250 * attempt), cancellationToken);
-            }
-        }
-    }
-
-    private static bool IsTransient(Exception exception) =>
-        exception switch
-        {
-            InPostApiException api => api.StatusCode is HttpStatusCode.TooManyRequests or >= HttpStatusCode.InternalServerError,
-            HttpRequestException => true,
-            TaskCanceledException => true,
-            _ => false,
-        };
-
-    private async Task<JsonElement> SendOnceAsync(
-        ShippingProviderConnectionContext context, HttpMethod method, string path, object? body, CancellationToken cancellationToken)
-    {
-        using var requestMessage = new HttpRequestMessage(method, GetBaseUrl(context) + path)
-        {
-            Headers = { Authorization = new AuthenticationHeaderValue("Bearer", GetApiToken(context)) },
-        };
-
-        if (body is not null)
-        {
-            requestMessage.Content = JsonContent.Create(body, options: _jsonOptions);
-        }
-
-        using var response = await _httpClient.SendAsync(requestMessage, cancellationToken);
-        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-
-        var root = default(JsonElement);
-        if (!string.IsNullOrWhiteSpace(responseBody))
-        {
-            using var document = JsonDocument.Parse(responseBody);
-            root = document.RootElement.Clone();
-        }
-
-        if (!response.IsSuccessStatusCode || IsErrorEnvelope(root))
-        {
-            throw CreateException(response.StatusCode, root, responseBody);
-        }
-
-        return root;
-    }
-
-    // ShipX sometimes returns an in-band error envelope with a 2xx status:
-    // {"status": ..., "key": ..., "error": ...} (grounded in ShipXClient's response handling).
-    private static bool IsErrorEnvelope(JsonElement root) =>
-        root.ValueKind == JsonValueKind.Object &&
-        root.TryGetProperty("error", out _) &&
-        root.TryGetProperty("status", out _) &&
-        root.TryGetProperty("key", out _);
-
-    private static InPostApiException CreateException(HttpStatusCode statusCode, JsonElement root, string responseBody)
-    {
-        string? errorCode = null;
-        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("error", out var errorElement))
-        {
-            errorCode = errorElement.ValueKind == JsonValueKind.String ? errorElement.GetString() : errorElement.ToString();
-        }
-
-        var message = errorCode is null
-            ? $"ShipX API request failed with status {(int)statusCode}. Body: {responseBody}"
-            : $"ShipX API error '{errorCode}' (HTTP {(int)statusCode}).";
-        return new InPostApiException(statusCode, errorCode, message);
-    }
-
-    private static bool IsSandbox(ShippingProviderConnectionContext context) =>
-        context.IsTestMode ||
-        (context.Metadata is not null &&
-        context.Metadata.TryGetValue("IsTestMode", out var value) &&
-        value switch
-        {
-            bool flag => flag,
-            string text => bool.TryParse(text, out var parsed) && parsed,
-            _ => false,
-        });
-
-    private static string GetBaseUrl(ShippingProviderConnectionContext context) =>
-        IsSandbox(context) ? SandboxBaseUrl : ProductionBaseUrl;
-
-    private static string GetOrganizationId(ShippingProviderConnectionContext context) =>
-        GetRequiredCredential(context, "OrganizationId");
-
-    private static string GetApiToken(ShippingProviderConnectionContext context) =>
-        GetRequiredCredential(context, "ApiToken");
-
-    private static string GetRequiredCredential(ShippingProviderConnectionContext context, string key) =>
-        context.Credentials.TryGetValue(key, out var value) && !string.IsNullOrEmpty(value)
-            ? value
-            : throw new InvalidOperationException($"The InPost connection is missing the required '{key}' credential.");
 }

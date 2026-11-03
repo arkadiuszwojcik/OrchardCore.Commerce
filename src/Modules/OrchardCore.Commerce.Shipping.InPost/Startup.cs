@@ -1,8 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrchardCore.Commerce.Shipping.Abstractions;
-using OrchardCore.Commerce.Shipping.InPost.Client;
 using OrchardCore.Modules;
-using System;
 
 namespace OrchardCore.Commerce.Shipping.InPost;
 
@@ -10,8 +8,8 @@ public class Startup : StartupBase
 {
     public override void ConfigureServices(IServiceCollection services)
     {
-        // Typed HttpClient for the ShipX REST API.
-        services.AddHttpClient<InPostApiClient>(client => client.Timeout = TimeSpan.FromSeconds(30));
+        // Refit-based client for the ShipX REST API.
+        services.AddInPostApiClient();
 
         // Register InPost provider once; capability interfaces alias the same scoped instance.
         services.AddScoped<InPostShippingProvider>();
