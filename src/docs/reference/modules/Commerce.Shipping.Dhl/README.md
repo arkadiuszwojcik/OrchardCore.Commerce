@@ -31,15 +31,14 @@ You will need:
 
 ### 2. Create Provider Connection
 
-1. Navigate to **Content > New > Shipping Provider Connection**
-2. Select **DHL** as provider
-3. Enter credentials:
-   - API Key
-   - API Secret
+1. Navigate to **Commerce > Shipping > Provider Connections** and click **Add Connection**
+2. Select **DHL eCommerce** in the **Available Providers** popup
+3. Enter the connection name and the DHL fields:
    - Account Number
-4. Toggle **Test Mode** for sandbox environment
-5. Click **Test Connection**
-6. Publish when healthy
+   - API Key (stored as a secret and never shown again; leave blank when editing to keep it)
+   - API Secret (same as the API key)
+4. Toggle **Test / Sandbox Mode** for sandbox environment
+5. Save
 
 ### 3. Configure Shipping Methods
 

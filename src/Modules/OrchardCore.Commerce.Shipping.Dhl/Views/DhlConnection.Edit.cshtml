@@ -1,0 +1,38 @@
+@using OrchardCore.Commerce.Shipping.Dhl.ViewModels
+
+@model DhlConnectionViewModel
+
+<div class="ocat-wrapper" asp-validation-class-for="AccountNumber">
+    <label asp-for="AccountNumber" class="ocat-label ocat-label-required">@T["Account Number"]</label>
+    <div class="ocat-end">
+        <input asp-for="AccountNumber" class="form-control" />
+        <span asp-validation-for="AccountNumber"></span>
+        <span class="hint">@T["Your DHL eCommerce account number."]</span>
+    </div>
+</div>
+
+<div class="ocat-wrapper" asp-validation-class-for="ApiKey">
+    <label asp-for="ApiKey" class="ocat-label @(Model.HasApiKey ? "" : "ocat-label-required")">@T["API Key"]</label>
+    <div class="ocat-end">
+        <input asp-for="ApiKey" type="password" class="form-control" autocomplete="new-password" />
+        <span asp-validation-for="ApiKey"></span>
+        <span class="hint">@T["Stored as a secret and never shown again. Leave blank to keep the current key."]</span>
+        @if (Model.HasApiKey)
+        {
+            <span class="hint">@T["An API key is currently stored for this connection."]</span>
+        }
+    </div>
+</div>
+
+<div class="ocat-wrapper" asp-validation-class-for="ApiSecret">
+    <label asp-for="ApiSecret" class="ocat-label @(Model.HasApiSecret ? "" : "ocat-label-required")">@T["API Secret"]</label>
+    <div class="ocat-end">
+        <input asp-for="ApiSecret" type="password" class="form-control" autocomplete="new-password" />
+        <span asp-validation-for="ApiSecret"></span>
+        <span class="hint">@T["Stored as a secret and never shown again. Leave blank to keep the current secret."]</span>
+        @if (Model.HasApiSecret)
+        {
+            <span class="hint">@T["An API secret is currently stored for this connection."]</span>
+        }
+    </div>
+</div>

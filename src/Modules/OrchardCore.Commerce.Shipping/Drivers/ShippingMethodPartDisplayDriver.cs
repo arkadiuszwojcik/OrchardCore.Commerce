@@ -1,17 +1,32 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Localization;
 using OrchardCore.Commerce.Shipping.Models;
+using OrchardCore.Commerce.Shipping.Services;
 using OrchardCore.Commerce.Shipping.ViewModels;
 using OrchardCore.ContentManagement.Display.ContentDisplay;
 using OrchardCore.ContentManagement.Display.Models;
 using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.DisplayManagement.Views;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OrchardCore.Commerce.Shipping.Drivers;
 
 public class ShippingMethodPartDisplayDriver : ContentPartDisplayDriver<ShippingMethodPart>
 {
+    private readonly IShippingProviderConnectionManager _connectionManager;
+    private readonly IStringLocalizer S;
+
+    public ShippingMethodPartDisplayDriver(
+        IShippingProviderConnectionManager connectionManager,
+        IStringLocalizer<ShippingMethodPartDisplayDriver> stringLocalizer)
+    {
+        _connectionManager = connectionManager;
+        S = stringLocalizer;
+    }
+
     public override IDisplayResult Edit(ShippingMethodPart part, BuildPartEditorContext context) =>
-        Initialize<ShippingMethodPartViewModel>(GetEditorShapeType(context), vm =>
+        Initialize<ShippingMethodPartViewModel>(GetEditorShapeType(context), async vm =>
         {
             vm.DisplayName = part.DisplayName.Text ?? string.Empty;
             vm.Description = part.Description.Text ?? string.Empty;
@@ -21,11 +36,24 @@ public class ShippingMethodPartDisplayDriver : ContentPartDisplayDriver<Shipping
             vm.IsEnabled = part.IsEnabled.Value;
             vm.SortOrder = (int)(part.SortOrder.Value ?? 0);
             vm.IconUrl = part.IconUrl.Text ?? string.Empty;
+            vm.AvailableConnections = (await _connectionManager.GetAllAsync())
+                .Select(connection => new SelectListItem(
+                    $"{connection.Name} ({connection.ProviderKey})",
+                    connection.Id,
+                    connection.Id == vm.ProviderConnectionId))
+                .ToList();
         });
 
     public override async Task<IDisplayResult> UpdateAsync(ShippingMethodPart part, UpdatePartEditorContext context)
     {
         var vm = await context.CreateModelAsync<ShippingMethodPartViewModel>(Prefix);
+
+        if (await _connectionManager.FindByIdAsync(vm.ProviderConnectionId) is null)
+        {
+            context.Updater.ModelState.AddModelError(
+                Prefix + "." + nameof(vm.ProviderConnectionId),
+                S["Select an existing provider connection."]);
+        }
 
         part.DisplayName.Text = vm.DisplayName;
         part.Description.Text = vm.Description;

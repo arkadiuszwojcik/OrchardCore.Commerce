@@ -17,18 +17,6 @@ public class ShippingMigrations : DataMigration
 
     public async Task<int> CreateAsync()
     {
-        await _contentDefinitionManager.AlterPartDefinitionAsync<ShippingProviderConnectionPart>(part => part
-            .Configure(p => p
-                .Attachable()
-                .WithDescription("Credentials and settings for a shipping carrier account.")));
-
-        await _contentDefinitionManager.AlterTypeDefinitionAsync("ShippingProviderConnection", type => type
-            .WithDisplayName("Shipping Provider Connection")
-            .Creatable()
-            .Listable()
-            .Draftable()
-            .WithPart(nameof(ShippingProviderConnectionPart)));
-
         await _contentDefinitionManager.AlterPartDefinitionAsync<ShippingOriginPart>(part => part
             .Configure(p => p
                 .Attachable()
@@ -73,6 +61,16 @@ public class ShippingMigrations : DataMigration
         await _contentDefinitionManager.AlterTypeDefinitionAsync("Order", type => type
             .WithPart(nameof(ShippingOrderPart)));
 
-        return 1;
+        return 2;
+    }
+
+    // Provider connections used to be content items of the "ShippingProviderConnection" type. They are plain
+    // entities in a document now, so the content type and part definitions are no longer needed.
+    public async Task<int> UpdateFrom1Async()
+    {
+        await _contentDefinitionManager.DeleteTypeDefinitionAsync("ShippingProviderConnection");
+        await _contentDefinitionManager.DeletePartDefinitionAsync("ShippingProviderConnectionPart");
+
+        return 2;
     }
 }

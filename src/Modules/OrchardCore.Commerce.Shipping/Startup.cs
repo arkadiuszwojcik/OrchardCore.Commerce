@@ -13,6 +13,8 @@ using OrchardCore.Commerce.Shipping.Permissions;
 using OrchardCore.Commerce.Shipping.Services;
 using OrchardCore.ContentManagement;
 using OrchardCore.ContentManagement.Display.ContentDisplay;
+using OrchardCore.Data;
+using OrchardCore.Data.Migration;
 using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.Modules;
 using OrchardCore.Navigation;
@@ -35,11 +37,14 @@ public class Startup : StartupBase
         services.TryAddSingleton<OrchardCore.Secrets.ISecretManager, Services.Secrets.SecretManager>();
         services.AddScoped<IShippingCredentialsService, ShippingCredentialsService>();
 
-        // Content parts + migrations + display drivers
-        services.AddContentPart<ShippingProviderConnectionPart>()
-            .UseDisplayDriver<ShippingProviderConnectionPartDisplayDriver>()
-            .WithMigration<ShippingMigrations>();
+        // Provider connections are plain entities stored in one document, not content items. The core driver edits the
+        // shared fields; every provider module adds its own driver for the fields specific to it.
+        services.AddDataMigration<ShippingMigrations>();
+        services.AddScoped<IShippingProviderConnectionStore, ShippingProviderConnectionStore>();
+        services.AddScoped<IShippingProviderConnectionManager, ShippingProviderConnectionManager>();
+        services.AddDisplayDriver<ShippingProviderConnection, ShippingProviderConnectionsDisplayDriver>();
 
+        // Content parts + display drivers
         services.AddContentPart<ShippingOriginPart>()
             .UseDisplayDriver<ShippingOriginPartDisplayDriver>();
 

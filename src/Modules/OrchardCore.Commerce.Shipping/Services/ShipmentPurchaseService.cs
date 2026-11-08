@@ -45,24 +45,24 @@ public interface IShipmentPurchaseService
 public class ShipmentPurchaseService : IShipmentPurchaseService
 {
     private readonly IContentManager _contentManager;
+    private readonly IShippingProviderConnectionManager _connectionManager;
     private readonly IShippingProviderRegistry _providerRegistry;
     private readonly IShippingDocumentStore _documentStore;
-    private readonly IShippingCredentialsService _credentialsService;
     private readonly ISession _session;
     private readonly ILogger<ShipmentPurchaseService> _logger;
 
     public ShipmentPurchaseService(
         IContentManager contentManager,
+        IShippingProviderConnectionManager connectionManager,
         IShippingProviderRegistry providerRegistry,
         IShippingDocumentStore documentStore,
-        IShippingCredentialsService credentialsService,
         ISession session,
         ILogger<ShipmentPurchaseService> logger)
     {
         _contentManager = contentManager;
+        _connectionManager = connectionManager;
         _providerRegistry = providerRegistry;
         _documentStore = documentStore;
-        _credentialsService = credentialsService;
         _session = session;
         _logger = logger;
     }
@@ -97,11 +97,11 @@ public class ShipmentPurchaseService : IShipmentPurchaseService
                 return new(ShipmentPurchaseOutcome.Blocked, "The shipment was cancelled.");
         }
 
-        var connectionItem = await _contentManager.GetAsync(shipmentPart.ProviderConnectionId.Text);
-        if (connectionItem is null || !connectionItem.TryGet<ShippingProviderConnectionPart>(out var connectionPart))
+        var connection = await _connectionManager.FindByIdAsync(shipmentPart.ProviderConnectionId.Text);
+        if (connection is null)
             return new(ShipmentPurchaseOutcome.Invalid, "Provider connection not found.");
 
-        if (_providerRegistry.GetProvider(connectionPart.ProviderKey.Text) is not IShipmentProvider provider)
+        if (_providerRegistry.GetProvider(connection.ProviderKey) is not IShipmentProvider provider)
             return new(ShipmentPurchaseOutcome.Invalid, "Provider not registered or does not support label purchase.");
 
         var origin = TryDeserialize<AddressSnapshot>(shipmentPart.OriginAddressJson.Text);
@@ -110,15 +110,7 @@ public class ShipmentPurchaseService : IShipmentPurchaseService
         if (origin is null || destination is null)
             return new(ShipmentPurchaseOutcome.Invalid, "Origin or destination address missing.");
 
-        var connectionId = shipmentPart.ProviderConnectionId.Text;
-        var credentials = await _credentialsService.GetCredentialsAsync(connectionId);
-        var context = new ShippingProviderConnectionContext(
-            connectionId,
-            credentials,
-            ProviderKey: connectionPart.ProviderKey.Text,
-            ConfigurationRevision: (long)(connectionPart.ConfigurationRevision.Value ?? 0),
-            CredentialVersion: (long)(connectionPart.CredentialVersion.Value ?? 0),
-            IsTestMode: connectionPart.IsTestMode.Value);
+        var context = await _connectionManager.CreateContextAsync(connection);
 
         // Persist the key and Pending state before the external call.
         var idempotencyKey = string.IsNullOrEmpty(shipmentPart.IdempotencyKey.Text)

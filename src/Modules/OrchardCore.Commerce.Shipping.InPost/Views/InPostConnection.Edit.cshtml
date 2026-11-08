@@ -1,0 +1,133 @@
+@using OrchardCore.Commerce.Shipping.InPost.ViewModels
+
+@model InPostConnectionViewModel
+
+<div class="ocat-wrapper">
+    <label for="inpost-api-endpoint" class="ocat-label">@T["API Endpoint"]</label>
+    <div class="ocat-end">
+        <input id="inpost-api-endpoint"
+               type="text"
+               class="form-control"
+               readonly="readonly"
+               value="@(Model.IsTestMode ? Model.SandboxBaseUrl : Model.ProductionBaseUrl)"
+               data-sandbox-url="@Model.SandboxBaseUrl"
+               data-production-url="@Model.ProductionBaseUrl" />
+        <span class="hint">@T["The ShipX address this connection calls."]</span>
+    </div>
+</div>
+
+<div class="ocat-wrapper" asp-validation-class-for="OrganizationId">
+    <label asp-for="OrganizationId" class="ocat-label ocat-label-required">@T["Organization ID"]</label>
+    <div class="ocat-end">
+        <input asp-for="OrganizationId" class="form-control" />
+        <span asp-validation-for="OrganizationId"></span>
+        <span class="hint">@T["The ShipX organization the API token is authorized for."]</span>
+    </div>
+</div>
+
+<div class="ocat-wrapper" asp-validation-class-for="ApiToken">
+    <label asp-for="ApiToken" class="ocat-label @(Model.HasApiToken ? "" : "ocat-label-required")">@T["API Token"]</label>
+    <div class="ocat-end">
+        <input asp-for="ApiToken" type="password" class="form-control" autocomplete="new-password" />
+        <span asp-validation-for="ApiToken"></span>
+        <span class="hint">@T["The ShipX API token. Stored as a secret and never shown again. Leave blank to keep the current token."]</span>
+        @if (Model.HasApiToken)
+        {
+            <span class="hint">@T["An API token is currently stored for this connection."]</span>
+        }
+    </div>
+</div>
+
+<div class="ocat-wrapper">
+    <div class="ocat-end-offset">
+        <button type="button"
+                id="inpost-test-connection"
+                class="btn btn-outline-primary"
+                data-url="@Url.Action("TestOrganization", "InPostConnections", new { area = "OrchardCore.Commerce.Shipping.InPost" })"
+                data-connection-id="@Model.ConnectionId">@T["Test connection"]</button>
+        <span class="hint">@T["Calls the ShipX organization endpoint with the values above and shows the response. The connection does not need to be saved. A blank API token uses the stored one."]</span>
+    </div>
+</div>
+
+<button type="button" id="inpost-test-modal-trigger" class="d-none" data-bs-toggle="modal" data-bs-target="#inpost-test-modal" tabindex="-1" aria-hidden="true"></button>
+
+<div class="modal fade" id="inpost-test-modal" tabindex="-1" role="dialog" aria-labelledby="inpost-test-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="inpost-test-modal-title">@T["Organization endpoint response"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@T["Close"]"></button>
+            </div>
+            <div class="modal-body">
+                <p id="inpost-test-summary" class="fw-bold"></p>
+                <pre id="inpost-test-result" class="p-3 border rounded"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@T["Close"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script at="Foot">
+    (function () {
+        const button = document.getElementById('inpost-test-connection');
+        const endpoint = document.getElementById('inpost-api-endpoint');
+        const form = button.closest('form');
+        const testModeInput = () => form.querySelector('input[type=checkbox][name$=".IsTestMode"]');
+        const isTestMode = () => !!(testModeInput() && testModeInput().checked);
+        const valueOf = (suffix) => {
+            const input = form.querySelector('input[name$="' + suffix + '"]');
+            return input ? input.value : '';
+        };
+
+        // The test mode checkbox belongs to the shared fields of the editor; the endpoint follows it.
+        const syncEndpoint = () => {
+            endpoint.value = isTestMode() ? endpoint.dataset.sandboxUrl : endpoint.dataset.productionUrl;
+        };
+        if (testModeInput()) {
+            testModeInput().addEventListener('change', syncEndpoint);
+        }
+        syncEndpoint();
+
+        const show = (summary, body) => {
+            document.getElementById('inpost-test-summary').textContent = summary;
+            document.getElementById('inpost-test-result').textContent = body;
+            document.getElementById('inpost-test-modal-trigger').click();
+        };
+
+        button.addEventListener('click', async () => {
+            const label = button.textContent;
+            const data = new FormData();
+            const antiForgery = form.querySelector('input[name="__RequestVerificationToken"]');
+            data.append('__RequestVerificationToken', antiForgery ? antiForgery.value : '');
+            data.append('ConnectionId', button.dataset.connectionId);
+            data.append('OrganizationId', valueOf('.OrganizationId'));
+            data.append('ApiToken', valueOf('.ApiToken'));
+            data.append('IsTestMode', isTestMode() ? 'true' : 'false');
+
+            button.disabled = true;
+            button.textContent = '@T["Testing..."]';
+            try {
+                const response = await fetch(button.dataset.url, { method: 'POST', body: data, credentials: 'same-origin' });
+                if (!response.ok) {
+                    show('HTTP ' + response.status, '@T["The test request was rejected. Reload the page and try again."]');
+                    return;
+                }
+
+                const outcome = await response.json();
+                if (outcome.success) {
+                    show('GET ' + outcome.requestUrl + ' - HTTP ' + outcome.httpStatus, JSON.stringify(outcome.result, null, 2));
+                } else {
+                    const status = outcome.httpStatus ? ' - HTTP ' + outcome.httpStatus : '';
+                    show(outcome.requestUrl ? 'GET ' + outcome.requestUrl + status : '@T["The test was not sent"]', outcome.error);
+                }
+            } catch (error) {
+                show('@T["The test failed"]', String(error));
+            } finally {
+                button.disabled = false;
+                button.textContent = label;
+            }
+        });
+    })();
+</script>

@@ -19,18 +19,18 @@ namespace OrchardCore.Commerce.Shipping.Activities;
 public class CancelShipmentTask : TaskActivity<CancelShipmentTask>
 {
     private readonly IContentManager _contentManager;
+    private readonly Services.IShippingProviderConnectionManager _connectionManager;
     private readonly IShippingProviderRegistry _providerRegistry;
-    private readonly Services.IShippingCredentialsService _credentialsService;
     protected readonly IStringLocalizer S;
 
     public CancelShipmentTask(
         IContentManager contentManager,
+        Services.IShippingProviderConnectionManager connectionManager,
         IShippingProviderRegistry providerRegistry,
-        Services.IShippingCredentialsService credentialsService,
         IStringLocalizer<CancelShipmentTask> localizer)
     {
-        _credentialsService = credentialsService;
         _contentManager = contentManager;
+        _connectionManager = connectionManager;
         _providerRegistry = providerRegistry;
         S = localizer;
     }
@@ -57,17 +57,13 @@ public class CancelShipmentTask : TaskActivity<CancelShipmentTask>
 
         if (!shipmentItem.TryGet<ShipmentPart>(out var shipmentPart)) return Outcomes("Failed");
 
-        var connectionItem = await _contentManager.GetAsync(shipmentPart.ProviderConnectionId.Text);
-        if (connectionItem is null) return Outcomes("Failed");
+        var connection = await _connectionManager.FindByIdAsync(shipmentPart.ProviderConnectionId.Text);
+        if (connection is null) return Outcomes("Failed");
 
-        if (!connectionItem.TryGet<ShippingProviderConnectionPart>(out var connectionPart)) return Outcomes("Failed");
-
-        if (_providerRegistry.GetProvider(connectionPart.ProviderKey.Text) is not IShipmentProvider shipmentProvider)
+        if (_providerRegistry.GetProvider(connection.ProviderKey) is not IShipmentProvider shipmentProvider)
             return Outcomes("Failed");
 
-        var credentials = await _credentialsService.GetCredentialsAsync(shipmentPart.ProviderConnectionId.Text);
-
-        var context = new ShippingProviderConnectionContext(shipmentPart.ProviderConnectionId.Text, credentials);
+        var context = await _connectionManager.CreateContextAsync(connection);
         var cancelled = await shipmentProvider.CancelShipmentAsync(context, shipmentPart.ShipmentId.Text ?? string.Empty);
 
         if (cancelled)

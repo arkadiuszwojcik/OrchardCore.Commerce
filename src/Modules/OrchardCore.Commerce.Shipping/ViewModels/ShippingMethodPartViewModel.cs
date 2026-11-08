@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Collections.Generic;
+
 namespace OrchardCore.Commerce.Shipping.ViewModels;
 
 public class ShippingMethodPartViewModel
@@ -10,4 +14,7 @@ public class ShippingMethodPartViewModel
     public bool IsEnabled { get; set; }
     public int SortOrder { get; set; }
     public string IconUrl { get; set; } = string.Empty;
+
+    [BindNever]
+    public IList<SelectListItem> AvailableConnections { get; set; } = [];
 }

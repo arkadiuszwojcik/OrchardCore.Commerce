@@ -11,4 +11,5 @@ public sealed record ShippingProviderDescriptor(
     IReadOnlyList<string> RequiredCredentialKeys,
     string? ProviderIconUrl = null,
     string? DocumentationUrl = null,
-    IDictionary<string, object>? Metadata = null);
+    IDictionary<string, object>? Metadata = null,
+    string? Description = null);

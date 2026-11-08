@@ -12,8 +12,9 @@ This module provides a provider-neutral shipping subsystem for OrchardCore Comme
 - Service interfaces (`IShippingRateService`, `IShippingQuoteStore`, `IShippingPackerService`, etc.)
 
 ✅ **Core Module Scaffold**
-- Content parts: `ShippingProviderConnectionPart`, `ShippingOriginPart`, `ShippingMethodPart`, `ShippingOrderPart`, `ShipmentPart`
-- Content type migrations for provider connections, origins, methods, shipments
+- Content parts: `ShippingOriginPart`, `ShippingMethodPart`, `ShippingOrderPart`, `ShipmentPart`
+- Provider connections are plain entities (`ShippingProviderConnection`) stored in one document, with their own admin UI, not content items. Each provider module adds its own connection editor (`DisplayDriver<ShippingProviderConnection>`)
+- Content type migrations for origins, methods, shipments
 - Feature definitions: Core, API, Workflows
 
 ## What's Missing (TODO)

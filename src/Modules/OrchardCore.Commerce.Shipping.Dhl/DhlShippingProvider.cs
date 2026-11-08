@@ -15,14 +15,17 @@ public class DhlShippingProvider :
     IShipmentProvider,
     IShippingTrackingProvider
 {
-    public string ProviderKey => "DHL";
+    public const string Key = "DHL";
+
+    public string ProviderKey => Key;
 
     public ShippingProviderDescriptor GetDescriptor() =>
         new(
-            ProviderKey: "DHL",
-            DisplayName: "DHL Express",
-            RequiredCredentialKeys: new[] { "ApiKey", "ApiSecret", "AccountNumber" },
-            DocumentationUrl: "https://developer.dhl.com/api-reference/");
+            ProviderKey: Key,
+            DisplayName: "DHL eCommerce",
+            RequiredCredentialKeys: new[] { "ApiKey", "ApiSecret" },
+            DocumentationUrl: "https://developer.dhl.com/api-reference/",
+            Description: "DHL eCommerce rates, labels and tracking (skeleton integration).");
 
     public async Task<ShippingProviderConnectionHealth> TestConnectionAsync(
         ShippingProviderConnectionContext context,

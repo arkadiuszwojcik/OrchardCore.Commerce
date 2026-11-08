@@ -1,0 +1,15 @@
+@model ShippingProviderConnectionEditorViewModel
+
+<zone Name="Title"><h1>@RenderTitleSegments(Model.IsNew ? T["New '{0}' Connection", Model.DisplayName] : T["Edit '{0}' Connection", Model.DisplayName])</h1></zone>
+
+<form method="post" class="no-multisubmit">
+    @Html.ValidationSummary()
+    @await DisplayAsync(Model.Editor)
+
+    <div class="ocat-wrapper">
+        <div class="ocat-end-offset">
+            <button type="submit" class="btn btn-primary">@T["Save"]</button>
+            <a asp-action="Index" class="btn btn-secondary cancel" role="button">@T["Cancel"]</a>
+        </div>
+    </div>
+</form>

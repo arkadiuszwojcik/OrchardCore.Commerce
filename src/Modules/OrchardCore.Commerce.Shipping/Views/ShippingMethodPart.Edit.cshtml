@@ -19,11 +19,13 @@
 </div>
 
 <div class="ocat-wrapper" asp-validation-class-for="ProviderConnectionId">
-    <label asp-for="ProviderConnectionId" class="ocat-label ocat-label-required">@T["Provider Connection (content item ID)"]</label>
+    <label asp-for="ProviderConnectionId" class="ocat-label ocat-label-required">@T["Provider Connection"]</label>
     <div class="ocat-end">
-        <input asp-for="ProviderConnectionId" class="form-control" />
+        <select asp-for="ProviderConnectionId" asp-items="Model.AvailableConnections" class="form-select">
+            <option value="">— @T["Select connection"] —</option>
+        </select>
         <span asp-validation-for="ProviderConnectionId"></span>
-        <span class="hint">@T["Content item ID of the Shipping Provider Connection used for rate quotes and shipment creation."]</span>
+        <span class="hint">@T["The shipping provider connection used for rate quotes and shipment creation."]</span>
     </div>
 </div>
 

@@ -18,7 +18,7 @@ public class ShippingAdminMenu : AdminMenuNavigationProviderBase
         builder.AddCommerce(T, commerce => commerce
             .Add(T["Shipping"], T["Shipping"], shipping => shipping
                 .Add(T["Provider Connections"], T["Provider Connections"], entry => entry
-                    .Action("List", "Admin", new { area = "OrchardCore.Contents", contentTypeId = "ShippingProviderConnection" })
+                    .Action("Index", "ShippingProviderConnections", "OrchardCore.Commerce.Shipping")
                     .Permission(ShippingPermissions.ManageShippingProviderConnections)
                     .LocalNav())
                 .Add(T["Origins"], T["Origins"], entry => entry

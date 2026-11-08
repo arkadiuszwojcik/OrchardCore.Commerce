@@ -16,31 +16,31 @@ namespace OrchardCore.Commerce.Shipping.Services;
 
 /// <summary>
 /// Orchestrating implementation of <see cref="IShippingRateService"/>.
-/// Flow: load ShippingMethod content item → load ShippingProviderConnection → build context
+/// Flow: load ShippingMethod content item → load the shipping provider connection → build context
 /// → check rate cache → call provider → cache results → map to <see cref="ShippingQuote"/> list.
 /// </summary>
 public class ShippingRateService : IShippingRateService
 {
     private readonly IContentManager _contentManager;
+    private readonly IShippingProviderConnectionManager _connectionManager;
     private readonly IShippingProviderRegistry _providerRegistry;
     private readonly IShippingRateCache _rateCache;
     private readonly IShippingQuoteStore _quoteStore;
     private readonly ShippingOptions _options;
     private readonly TimeProvider _timeProvider;
-    private readonly IShippingCredentialsService _credentialsService;
 
     public ShippingRateService(
         IContentManager contentManager,
+        IShippingProviderConnectionManager connectionManager,
         IShippingProviderRegistry providerRegistry,
         IShippingRateCache rateCache,
         IShippingQuoteStore quoteStore,
         IOptionsSnapshot<ShippingOptions> options,
-        TimeProvider timeProvider,
-        IShippingCredentialsService credentialsService)
+        TimeProvider timeProvider)
     {
-        _credentialsService = credentialsService;
         _timeProvider = timeProvider;
         _contentManager = contentManager;
+        _connectionManager = connectionManager;
         _providerRegistry = providerRegistry;
         _rateCache = rateCache;
         _quoteStore = quoteStore;
@@ -63,14 +63,12 @@ public class ShippingRateService : IShippingRateService
         var connectionId = methodPart.ProviderConnectionId.Text;
         if (string.IsNullOrEmpty(connectionId)) return Array.Empty<ShippingQuote>();
 
-        // 2. Load ShippingProviderConnection content item.
-        var connectionItem = await _contentManager.GetAsync(connectionId);
-        if (connectionItem is null) return Array.Empty<ShippingQuote>();
-
-        if (!connectionItem.TryGet<ShippingProviderConnectionPart>(out var connectionPart) || !connectionPart.IsEnabled.Value) return Array.Empty<ShippingQuote>();
+        // 2. Load the shipping provider connection.
+        var connection = await _connectionManager.FindByIdAsync(connectionId);
+        if (connection is null || !connection.IsEnabled) return Array.Empty<ShippingQuote>();
 
         // 3. Resolve provider.
-        var providerKey = connectionPart.ProviderKey.Text;
+        var providerKey = connection.ProviderKey;
         if (string.IsNullOrEmpty(providerKey)) return Array.Empty<ShippingQuote>();
 
         if (_providerRegistry.GetProvider(providerKey) is not IShippingRateProvider rateProvider)
@@ -78,15 +76,8 @@ public class ShippingRateService : IShippingRateService
             return Array.Empty<ShippingQuote>();
         }
 
-        // 4. Build connection context from the connection's stored secrets.
-        var credentials = await _credentialsService.GetCredentialsAsync(connectionId);
-        var context = new ShippingProviderConnectionContext(
-            connectionId,
-            credentials,
-            ProviderKey: providerKey,
-            ConfigurationRevision: (long)(connectionPart.ConfigurationRevision.Value ?? 0),
-            CredentialVersion: (long)(connectionPart.CredentialVersion.Value ?? 0),
-            IsTestMode: connectionPart.IsTestMode.Value);
+        // 4. Build connection context from the connection's settings and stored secrets.
+        var context = await _connectionManager.CreateContextAsync(connection);
 
         // 5. Build cache key and try cache.
         var cachePolicy = rateProvider.GetRateCachePolicy();

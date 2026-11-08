@@ -1,0 +1,15 @@
+<div class="col">
+    <div class="card h-100">
+        <div class="card-body">
+            <h4>@Model.DisplayName</h4>
+            <p class="hint">@Model.Description</p>
+        </div>
+        <div class="card-footer text-muted text-sm-end">
+            <a class="btn btn-primary btn-sm"
+               asp-action="Create"
+               asp-controller="ShippingProviderConnections"
+               asp-route-id="@Model.ProviderKey"
+               asp-area="OrchardCore.Commerce.Shipping">@T["Add"]</a>
+        </div>
+    </div>
+</div>

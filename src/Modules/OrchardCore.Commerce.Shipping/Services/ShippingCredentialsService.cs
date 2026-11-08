@@ -9,17 +9,18 @@ namespace OrchardCore.Commerce.Shipping.Services;
 
 /// <summary>
 /// Reads and writes the credential set of a shipping provider connection through <see cref="ISecretManager"/>.
-/// The whole set is stored as one <see cref="TextSecret"/> (a JSON object) so credentials never live in content items.
+/// The whole set is stored as one <see cref="TextSecret"/> (a JSON object) so credentials never live in the
+/// connection document itself.
 /// </summary>
 public interface IShippingCredentialsService
 {
-    Task<IDictionary<string, string>> GetCredentialsAsync(string connectionContentItemId);
+    Task<IDictionary<string, string>> GetCredentialsAsync(string connectionId);
 
-    Task<bool> HasCredentialsAsync(string connectionContentItemId);
+    Task<bool> HasCredentialsAsync(string connectionId);
 
-    Task SaveCredentialsAsync(string connectionContentItemId, IDictionary<string, string> credentials);
+    Task SaveCredentialsAsync(string connectionId, IDictionary<string, string> credentials);
 
-    Task RemoveCredentialsAsync(string connectionContentItemId);
+    Task RemoveCredentialsAsync(string connectionId);
 }
 
 public class ShippingCredentialsService : IShippingCredentialsService
@@ -28,9 +29,9 @@ public class ShippingCredentialsService : IShippingCredentialsService
 
     public ShippingCredentialsService(ISecretManager secretManager) => _secretManager = secretManager;
 
-    public async Task<IDictionary<string, string>> GetCredentialsAsync(string connectionContentItemId)
+    public async Task<IDictionary<string, string>> GetCredentialsAsync(string connectionId)
     {
-        var secret = await _secretManager.GetSecretAsync<TextSecret>(GetName(connectionContentItemId));
+        var secret = await _secretManager.GetSecretAsync<TextSecret>(GetName(connectionId));
         if (string.IsNullOrWhiteSpace(secret?.Text)) return new Dictionary<string, string>();
 
         try
@@ -44,20 +45,20 @@ public class ShippingCredentialsService : IShippingCredentialsService
         }
     }
 
-    public async Task<bool> HasCredentialsAsync(string connectionContentItemId) =>
-        await _secretManager.GetSecretAsync<TextSecret>(GetName(connectionContentItemId)) != null;
+    public async Task<bool> HasCredentialsAsync(string connectionId) =>
+        await _secretManager.GetSecretAsync<TextSecret>(GetName(connectionId)) != null;
 
-    public Task SaveCredentialsAsync(string connectionContentItemId, IDictionary<string, string> credentials) =>
+    public Task SaveCredentialsAsync(string connectionId, IDictionary<string, string> credentials) =>
         _secretManager.SaveSecretAsync(
-            GetName(connectionContentItemId),
+            GetName(connectionId),
             new TextSecret { Text = JsonSerializer.Serialize(credentials) },
             new SecretSaveOptions { Description = "Shipping provider connection credentials." });
 
-    public Task RemoveCredentialsAsync(string connectionContentItemId) =>
-        _secretManager.RemoveSecretAsync(GetName(connectionContentItemId));
+    public Task RemoveCredentialsAsync(string connectionId) =>
+        _secretManager.RemoveSecretAsync(GetName(connectionId));
 
-    private static string GetName(string connectionContentItemId) =>
-        string.IsNullOrWhiteSpace(connectionContentItemId)
-            ? throw new ArgumentException("Connection ID is required.", nameof(connectionContentItemId))
-            : $"Shipping.Connection.{connectionContentItemId}";
+    private static string GetName(string connectionId) =>
+        string.IsNullOrWhiteSpace(connectionId)
+            ? throw new ArgumentException("Connection ID is required.", nameof(connectionId))
+            : $"Shipping.Connection.{connectionId}";
 }

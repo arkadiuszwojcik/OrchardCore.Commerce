@@ -29,9 +29,8 @@ the raw JSON) and are therefore parsed defensively rather than with a strict sch
   in `InPostShippingProvider.cs`). Verify these against a live sandbox account before production use.
 - **Parcel template selection** (`small`/`medium`/`large`/`xlarge`) uses the dimension/weight
   thresholds documented in `ShipX_Shipment_Parcel_Model` comments.
-- Sandbox vs. production is selected from `context.Metadata["IsTestMode"]` (matching the
-  `IsTestMode` field already present on `ShippingProviderConnectionPart`); the core shipping module
-  does not yet populate this when invoking providers.
+- Sandbox vs. production is selected from the connection's `IsTestMode` flag (`context.IsTestMode`),
+  which the shared connection editor of the core shipping module sets.
 - Additional services (COD, insurance, SMS/e-mail notifications) are modeled in the ShipX client
   (`InPostMoney`, `InPostShipmentRequest.Cod/Insurance`) but not yet wired up from
   `ShippingExtensionConfiguration` - see "Future extension points" below.
@@ -52,11 +51,13 @@ the raw JSON) and are therefore parsed defensively rather than with a strict sch
 
 InPost's ShipX API uses a Bearer token plus a numeric organization ID:
 
-- `ApiToken` - ShipX API access token.
-- `OrganizationId` - the InPost ShipX organization ID the token is authorized for.
+- `ApiToken` - ShipX API access token. A secret, stored through the secret store (`context.Credentials`).
+- `OrganizationId` - the InPost ShipX organization ID the token is authorized for. A plain setting stored in the
+  connection's properties (`InPostConnectionSettings`, read with `context.GetSettings<InPostConnectionSettings>()`).
+  Both are edited in the InPost connection editor (`InPostConnectionDisplayDriver`).
 
 Sandbox (`https://sandbox-api-shipx-pl.easypack24.net`) vs. production
-(`https://api-shipx-pl.easypack24.net`) is selected via `context.Metadata["IsTestMode"]`.
+(`https://api-shipx-pl.easypack24.net`) is selected via `context.IsTestMode`.
 
 ## Well-known service codes
 
@@ -92,7 +93,7 @@ be added incrementally.
 
 1. Enable the `OrchardCore.Commerce.Shipping` feature.
 2. Enable the `OrchardCore.Commerce.Shipping.InPost` feature.
-3. Create a "Shipping Provider Connection" content item.
+3. Create a shipping provider connection under Commerce > Shipping > Provider Connections.
 4. Select "InPost" as provider.
 5. Enter the API token and organization ID.
 6. Configure shipping methods using InPost services.

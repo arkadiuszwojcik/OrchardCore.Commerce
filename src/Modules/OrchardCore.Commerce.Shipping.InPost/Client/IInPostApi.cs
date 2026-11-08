@@ -20,6 +20,13 @@ public interface IInPostApi
         [Property(InPostConnectionHandler.ContextOptionKey)] ShippingProviderConnectionContext context,
         CancellationToken cancellationToken);
 
+    // Same endpoint as GetOrganizationAsync, but the body is not mapped to InPostOrganization.
+    [Get("/v1/organizations/{organizationId}")]
+    Task<JsonElement> GetOrganizationJsonAsync(
+        string organizationId,
+        [Property(InPostConnectionHandler.ContextOptionKey)] ShippingProviderConnectionContext context,
+        CancellationToken cancellationToken);
+
     [Post("/v1/organizations/{organizationId}/shipments/calculate")]
     Task<JsonElement> CalculatePricesAsync(
         string organizationId,

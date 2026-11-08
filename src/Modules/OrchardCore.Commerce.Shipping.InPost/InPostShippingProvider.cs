@@ -179,14 +179,17 @@ public class InPostShippingProvider :
         _logger = logger;
     }
 
-    public string ProviderKey => "InPost";
+    public const string Key = "InPost";
+
+    public string ProviderKey => Key;
 
     public ShippingProviderDescriptor GetDescriptor() =>
         new(
-            ProviderKey: "InPost",
+            ProviderKey: Key,
             DisplayName: "InPost",
-            RequiredCredentialKeys: new[] { "ApiToken", "OrganizationId" },
-            DocumentationUrl: null);
+            RequiredCredentialKeys: new[] { InPostConnection.ApiTokenKey },
+            DocumentationUrl: null,
+            Description: "InPost ShipX: parcel lockers (Paczkomat) and courier shipments.");
 
     public async Task<ShippingProviderConnectionHealth> TestConnectionAsync(
         ShippingProviderConnectionContext context,
@@ -459,8 +462,11 @@ public class InPostShippingProvider :
             Email: address.Email ?? string.Empty,
             Phone: address.Phone ?? string.Empty,
             Address: new InPostAddress(
+                Id: null,
                 Street: address.Line1 ?? string.Empty,
                 BuildingNumber: address.Line2 ?? string.Empty,
+                Line1: null,
+                Line2: null,
                 City: address.City ?? string.Empty,
                 PostCode: address.PostalCode ?? string.Empty,
                 CountryCode: address.CountryCode ?? string.Empty),
@@ -508,13 +514,16 @@ public class InPostShippingProvider :
         var centimeterDimensions = dimensions.ConvertTo(DimensionUnit.Centimeter);
         Span<decimal> sorted = stackalloc decimal[3] { centimeterDimensions.Length, centimeterDimensions.Width, centimeterDimensions.Height };
         sorted.Sort();
+        Span<decimal> maxSorted = stackalloc decimal[3];
 
         foreach (var (template, maxDimensions, maxWeight) in templates)
         {
             if (weight.CompareTo(maxWeight) > 0) continue;
 
             var maxCentimeterDimensions = maxDimensions.ConvertTo(DimensionUnit.Centimeter);
-            Span<decimal> maxSorted = stackalloc decimal[3] { maxCentimeterDimensions.Length, maxCentimeterDimensions.Width, maxCentimeterDimensions.Height };
+            maxSorted[0] = maxCentimeterDimensions.Length;
+            maxSorted[1] = maxCentimeterDimensions.Width;
+            maxSorted[2] = maxCentimeterDimensions.Height;
             maxSorted.Sort();
 
             if (sorted[0] <= maxSorted[0] && sorted[1] <= maxSorted[1] && sorted[2] <= maxSorted[2])

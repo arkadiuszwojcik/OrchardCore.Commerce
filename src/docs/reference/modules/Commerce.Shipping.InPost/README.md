@@ -35,14 +35,14 @@ You will need:
 
 ### 2. Create Provider Connection
 
-1. Navigate to **Content > New > Shipping Provider Connection**.
-2. Select **InPost** as provider.
-3. Enter credentials:
-   - API Token
+1. Navigate to **Commerce > Shipping > Provider Connections** and click **Add Connection**.
+2. Select **InPost** in the **Available Providers** popup.
+3. Enter the connection name and the InPost fields:
+   - API Token (stored as a secret and never shown again; leave blank when editing to keep it)
    - Organization ID
-4. Toggle **Test Mode** for the sandbox environment.
-5. Click **Test Connection**.
-6. Publish when healthy.
+4. Toggle **Test / Sandbox Mode** for the sandbox environment. The read-only **API Endpoint** box shows the ShipX address the connection will call: `https://sandbox-api-shipx-pl.easypack24.net` in test mode, `https://api-shipx-pl.easypack24.net` otherwise.
+5. Click **Test connection** in the editor to call the ShipX organization endpoint (`GET /v1/organizations/{id}`) with the values currently entered. The raw JSON answer, or the error, is shown in a popup. The connection does not need to be saved first, and a blank API token uses the stored one.
+6. Save.
 
 ### 3. Configure Shipping Methods
 

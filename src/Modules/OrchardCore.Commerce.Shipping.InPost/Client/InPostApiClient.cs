@@ -45,6 +45,17 @@ public class InPostApiClient
         UnwrapAsync(() => _api.GetOrganizationAsync(InPostConnection.GetOrganizationId(context), context, cancellationToken));
 
     /// <summary>
+    /// <c>GET /v1/organizations/{organizationId}</c> like <see cref="GetOrganizationAsync"/>, but returns the response
+    /// body exactly as ShipX sent it, as a raw <see cref="JsonElement"/>. Its purpose is the "Test connection" button
+    /// of the connection editor: it shows the unmodified response, so it stays complete and accurate even for fields
+    /// that <see cref="InPostOrganization"/> does not model (or if ShipX adds new ones). Use
+    /// <see cref="GetOrganizationAsync"/> when the data is needed in code.
+    /// </summary>
+    public Task<JsonElement> GetOrganizationJsonAsync(
+        ShippingProviderConnectionContext context, CancellationToken cancellationToken) =>
+        UnwrapAsync(() => _api.GetOrganizationJsonAsync(InPostConnection.GetOrganizationId(context), context, cancellationToken));
+
+    /// <summary>
     /// <c>POST /v1/organizations/{organizationId}/shipments/calculate</c> with body <c>{"shipments": [...]}</c>.
     /// Returns each priced shipment result (still containing its "offers") as a raw <see cref="JsonElement"/>,
     /// in the same order as <paramref name="shipments"/>.

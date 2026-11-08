@@ -1,6 +1,30 @@
+using System;
+using System.Collections.Generic;
+
 namespace OrchardCore.Commerce.Shipping.InPost.Client.Models;
 
 /// <summary>
-/// Subset of the ShipX organization resource fields, grounded in <c>Organization.php</c>: <c>id</c>, <c>name</c>.
+/// The ShipX organization resource returned by <c>GET /v1/organizations/{organizationId}</c>. The properties follow
+/// the response (snake_case on the wire). The response's <c>href</c> link is not modeled.
 /// </summary>
-public sealed record InPostOrganization(long? Id, string? Name);
+public sealed record InPostOrganization(
+    long Id,
+    long OwnerId,
+    string Name,
+    string? TaxId,
+    string? BankAccountNumber,
+    IReadOnlyList<string>? Carriers,
+    IReadOnlyList<string>? Services,
+    InPostAddress? Address,
+    InPostAddress? InvoiceAddress,
+    InPostContactPerson? ContactPerson,
+    DateTimeOffset? CreatedAt,
+    DateTimeOffset? UpdatedAt);
+
+
+public sealed record InPostContactPerson(
+    long Id,
+    string? Email,
+    string? Phone,
+    string? FirstName,
+    string? LastName);

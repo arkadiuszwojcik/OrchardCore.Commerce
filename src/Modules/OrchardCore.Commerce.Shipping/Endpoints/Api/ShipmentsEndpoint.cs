@@ -130,8 +130,8 @@ public static class ShipmentsEndpoint
         [FromRoute] string shipmentId,
         [FromServices] IAuthorizationService authorizationService,
         [FromServices] IContentManager contentManager,
+        [FromServices] Services.IShippingProviderConnectionManager connectionManager,
         [FromServices] IShippingProviderRegistry providerRegistry,
-        [FromServices] Services.IShippingCredentialsService credentialsService,
         HttpContext httpContext)
     {
         if (!await authorizationService.AuthorizeAsync(httpContext.User, ShippingPermissions.ManageShipments))
@@ -140,16 +140,15 @@ public static class ShipmentsEndpoint
         var shipmentItem = await contentManager.GetAsync(shipmentId);
         if (shipmentItem is null) return TypedResults.NotFound();
 
-        shipmentItem.TryGet<ShipmentPart>(out var shipmentPart);
-        var connectionItem = await contentManager.GetAsync(shipmentPart?.ProviderConnectionId.Text ?? string.Empty);
-        ShippingProviderConnectionPart? connectionPart = null;
-        connectionItem?.TryGet<ShippingProviderConnectionPart>(out connectionPart);
-
-        if (connectionPart is null || providerRegistry.GetProvider(connectionPart.ProviderKey.Text) is not IShipmentProvider provider)
+        if (!shipmentItem.TryGet<ShipmentPart>(out var shipmentPart))
             return TypedResults.BadRequest("Provider not available.");
 
-        var credentials = await credentialsService.GetCredentialsAsync(shipmentPart!.ProviderConnectionId.Text);
-        var context = new ShippingProviderConnectionContext(shipmentPart.ProviderConnectionId.Text, credentials);
+        var connection = await connectionManager.FindByIdAsync(shipmentPart.ProviderConnectionId.Text ?? string.Empty);
+
+        if (connection is null || providerRegistry.GetProvider(connection.ProviderKey) is not IShipmentProvider provider)
+            return TypedResults.BadRequest("Provider not available.");
+
+        var context = await connectionManager.CreateContextAsync(connection);
         var cancelled = await provider.CancelShipmentAsync(context, shipmentPart.ShipmentId.Text ?? string.Empty);
 
         if (cancelled)

@@ -24,12 +24,13 @@ DHL Express shipping provider for OrchardCore Commerce.
 ## API Reference
 
 - [DHL Express MyDHL API Documentation](https://developer.dhl.com/api-reference/dhl-express-mydhl-api)
-- Required credentials: `ApiKey`, `ApiSecret`, `AccountNumber`
+- Required credentials: `ApiKey`, `ApiSecret` (secrets). The `AccountNumber` is a plain setting stored in the
+  connection's properties (`DhlConnectionSettings`). All three are edited in the DHL connection editor.
 
 ## Usage
 
 1. Enable the `OrchardCore.Commerce.Shipping.Dhl` feature
-2. Create a "Shipping Provider Connection" content item
+2. Create a shipping provider connection under Commerce > Shipping > Provider Connections
 3. Select "DHL" as provider
 4. Enter API credentials
 5. Configure shipping methods using DHL services

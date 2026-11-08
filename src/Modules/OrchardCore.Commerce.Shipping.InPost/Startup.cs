@@ -1,5 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrchardCore.Commerce.Shipping.Abstractions;
+using OrchardCore.Commerce.Shipping.InPost.Drivers;
+using OrchardCore.Commerce.Shipping.Models;
+using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.Modules;
 
 namespace OrchardCore.Commerce.Shipping.InPost;
@@ -19,6 +22,8 @@ public class Startup : StartupBase
         services.AddScoped<IShipmentProvider>(sp => sp.GetRequiredService<InPostShippingProvider>());
         services.AddScoped<IShippingTrackingProvider>(sp => sp.GetRequiredService<InPostShippingProvider>());
         services.AddScoped<IPickupPointProvider>(sp => sp.GetRequiredService<InPostShippingProvider>());
+
+        // The connection editor for InPost connections. The Shipping module shows it next to the shared fields.
+        services.AddDisplayDriver<ShippingProviderConnection, InPostConnectionDisplayDriver>();
     }
 }
-
