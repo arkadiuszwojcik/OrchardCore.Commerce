@@ -114,8 +114,8 @@ public sealed record InPostPointSearch
         var query = new Dictionary<string, string>();
 
         InPostQuery.Add(query, "name", Names);
-        InPostQuery.Add(query, "type", Types?.Select(ToWireValue));
-        InPostQuery.Add(query, "functions", Functions?.Select(ToWireValue));
+        InPostQuery.Add(query, "type", Types?.Select(InPostQuery.ToWireValue));
+        InPostQuery.Add(query, "functions", Functions?.Select(InPostQuery.ToWireValue));
         InPostQuery.Add(query, "partner_id", PartnerIds);
         InPostQuery.Add(query, "is_next", IsNext);
         InPostQuery.Add(query, "payment_available", PaymentAvailable);
@@ -136,7 +136,7 @@ public sealed record InPostPointSearch
         InPostQuery.Add(query, "relative_post_code", RelativePostCode);
         InPostQuery.Add(query, "max_distance", MaxDistance);
         InPostQuery.Add(query, "limit", Limit);
-        InPostQuery.Add(query, "sort_by", SortBy is { } sortBy ? ToWireValue(sortBy) : null);
+        InPostQuery.Add(query, "sort_by", SortBy is { } sortBy ? InPostQuery.ToWireValue(sortBy) : null);
         InPostQuery.Add(query, "sort_order", SortOrder switch
         {
             null => null,

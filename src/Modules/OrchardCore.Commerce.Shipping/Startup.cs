@@ -70,6 +70,9 @@ public class Startup : StartupBase
         services.AddScoped<IShipmentStateTransitionValidator, ShipmentStateTransitionValidator>();
         services.AddSingleton<IShippingRateCache, ShippingRateCache>();
 
+        // Labels and customs documents are kept in the distributed cache (the shell's IDistributedCache).
+        services.AddScoped<IShippingDocumentStore, ShippingDocumentStore>();
+
         // Permissions & admin navigation
         services.AddScoped<IPermissionProvider, ShippingPermissions>();
         services.AddScoped<INavigationProvider, ShippingAdminMenu>();
