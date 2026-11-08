@@ -403,20 +403,18 @@ public class InPostShippingProvider :
     {
         if (string.IsNullOrEmpty(request.DestinationAddress.PostalCode)) return Array.Empty<PickupPoint>();
 
-        // Query parameters grounded in ClosestPointDataProvider (PrestaShop plugin): relative_post_code,
-        // sort_by=distance_to_relative_point, sort_order, limit.
-        var query = new Dictionary<string, string>
+        var search = new InPostPointSearch
         {
-            ["relative_post_code"] = request.DestinationAddress.PostalCode,
-            ["sort_by"] = "distance_to_relative_point",
-            ["sort_order"] = "asc",
-            ["limit"] = request.MaxResults.ToString(CultureInfo.InvariantCulture),
+            RelativePostCode = request.DestinationAddress.PostalCode,
+            SortBy = InPostPointSortBy.DistanceToRelativePoint,
+            SortOrder = InPostSortOrder.Ascending,
+            Limit = request.MaxResults,
         };
 
-        IReadOnlyList<JsonElement> points;
+        InPostPointPage points;
         try
         {
-            points = await _apiClient.SearchPointsAsync(context, query, cancellationToken);
+            points = await _apiClient.SearchPointsAsync(context, search, cancellationToken);
         }
         catch (InPostApiException exception)
         {
@@ -424,7 +422,7 @@ public class InPostShippingProvider :
             return Array.Empty<PickupPoint>();
         }
 
-        return points.Select(MapPickupPoint).Where(point => point is not null).Select(point => point!).ToList();
+        return points.Items.Select(MapPickupPoint).ToList();
     }
 
     private static InPostShipmentRequest BuildShipmentRequest(
@@ -616,48 +614,15 @@ public class InPostShippingProvider :
         };
     }
 
-    // Point resource fields grounded in ShipX/Resource/Point.php: name (id), address (object), location_description,
-    // opening_hours, distance. The exact keys inside "address" weren't directly observable, so common candidates
-    // (line1/street, city, post_code) are tried defensively.
-    private static PickupPoint? MapPickupPoint(JsonElement point)
-    {
-        if (point.ValueKind != JsonValueKind.Object) return null;
-        if (!point.TryGetProperty("name", out var nameElement) || nameElement.ValueKind != JsonValueKind.String) return null;
-
-        var pickupPointId = nameElement.GetString();
-        if (string.IsNullOrEmpty(pickupPointId)) return null;
-
-        var locationName = point.TryGetProperty("location_description", out var descriptionElement) &&
-            descriptionElement.ValueKind == JsonValueKind.String
-                ? descriptionElement.GetString() ?? pickupPointId
-                : pickupPointId;
-
-        AddressSnapshot? address = null;
-        if (point.TryGetProperty("address", out var addressElement) && addressElement.ValueKind == JsonValueKind.Object)
-        {
-            address = new AddressSnapshot(
-                Line1: GetString(addressElement, "line1") ?? GetString(addressElement, "street"),
-                City: GetString(addressElement, "city"),
-                PostalCode: GetString(addressElement, "post_code"),
-                CountryCode: GetString(addressElement, "country_code"));
-        }
-
-        var openingHours = GetString(point, "opening_hours");
-        var distance = point.TryGetProperty("distance", out var distanceElement) && distanceElement.ValueKind == JsonValueKind.Number
-            ? distanceElement.GetRawText()
-            : null;
-
-        return new PickupPoint(
-            PickupPointId: pickupPointId,
-            LocationName: locationName,
-            Address: address ?? new AddressSnapshot(),
-            OpeningHours: openingHours,
-            DistanceFromDestination: distance);
-    }
-
-    private static string? GetString(JsonElement element, string propertyName) =>
-        element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String
-            ? property.GetString()
-            : null;
+    private static PickupPoint MapPickupPoint(InPostPoint point) =>
+        new(
+            PickupPointId: point.Name,
+            LocationName: point.DisplayName ?? point.Name,
+            Address: new AddressSnapshot(
+                Line1: point.Address?.Line1 ?? point.AddressDetails?.Street,
+                City: point.AddressDetails?.City,
+                PostalCode: point.AddressDetails?.PostCode),
+            OpeningHours: point.OpeningHours,
+            DistanceFromDestination: point.Distance?.ToString(CultureInfo.InvariantCulture));
 }
 

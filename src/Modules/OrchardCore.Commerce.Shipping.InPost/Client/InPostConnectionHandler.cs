@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace OrchardCore.Commerce.Shipping.InPost.Client;
 
 /// <summary>
-/// Applies the per-call connection (base URL, bearer token) to ShipX requests and converts failures - a non-2xx
+/// Applies the per-call connection (base URL, bearer token) to ShipX and Points requests and converts failures - a non-2xx
 /// response or a 2xx in-band error envelope - into <see cref="InPostApiException"/>. Retrying is done by the
 /// resilience handler registered in front of this one.
 /// </summary>
@@ -28,7 +28,7 @@ public class InPostConnectionHandler : DelegatingHandler
         }
 
         // The pipeline may resend the same message, so these assignments are idempotent.
-        request.RequestUri = new Uri(InPostConnection.GetBaseUrl(context) + request.RequestUri!.PathAndQuery);
+        request.RequestUri = new Uri(InPostConnection.GetBaseUrl(context, request.RequestUri!.AbsolutePath) + request.RequestUri.PathAndQuery);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", InPostConnection.GetApiToken(context));
 
         var response = await base.SendAsync(request, cancellationToken);

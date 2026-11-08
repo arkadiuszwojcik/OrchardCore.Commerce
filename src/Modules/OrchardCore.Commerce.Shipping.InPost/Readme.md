@@ -24,9 +24,9 @@ from the reference PHP plugins (`inpost-for-woocommerce`, `inpostshipping-presta
 A few response shapes could not be directly observed in that source (the PHP code merely forwards
 the raw JSON) and are therefore parsed defensively rather than with a strict schema:
 
-- **Rate offers** (`/shipments/calculate` response) and **pickup point** (`/v1/points` response)
-  fields are read via best-effort `JsonElement` lookups (see `TryExtractOfferPrice`/`MapPickupPoint`
-  in `InPostShippingProvider.cs`). Verify these against a live sandbox account before production use.
+- **Rate offers** (`/shipments/calculate` response) fields are read via best-effort `JsonElement` lookups (see
+  `TryExtractOfferPrice` in `InPostShippingProvider.cs`). Verify them against a live sandbox account before
+  production use. Pickup points use the typed `InPostPoint` model (see "Searching points").
 - **Parcel template selection** (`small`/`medium`/`large`/`xlarge`) uses the dimension/weight
   thresholds documented in `ShipX_Shipment_Parcel_Model` comments.
 - Sandbox vs. production is selected from the connection's `IsTestMode` flag (`context.IsTestMode`),
@@ -39,8 +39,8 @@ the raw JSON) and are therefore parsed defensively rather than with a strict sch
 
 1. Wire `ShippingExtensionConfiguration` (COD, insurance, notifications) into
    `PurchaseShipmentAsync`'s `InPostShipmentRequest`.
-2. Verify the `/shipments/calculate` and `/v1/points` response shapes against a live ShipX sandbox
-   account and tighten the defensive parsing in `TryExtractOfferPrice`/`MapPickupPoint` accordingly.
+2. Verify the `/shipments/calculate` response shape against a live ShipX sandbox
+   account and tighten the defensive parsing in `TryExtractOfferPrice` accordingly.
 3. Add credential encryption for the API token.
 4. Write unit tests with mocked ShipX responses (see `orchardcore-unit-test` skill).
 5. Add admin UI for InPost-specific settings (default sending method, additional services).
@@ -107,8 +107,43 @@ var page = await client.SearchShipmentsAsync(context, new InPostShipmentSearch
 `FindShipmentByTrackingNumberAsync` (used for tracking) is a shortcut for a search by `TrackingNumber`.
 
 **Not confirmed:** the paging parameter names (`page`, `per_page`) and the `count` / `page` / `per_page` envelope
-fields are not on the search documentation page. They follow ShipX convention; verify them against the sandbox.
+fields are not on the search documentation page; they follow the Points documentation, where they are described,
+and are assumed to behave the same for shipments. Verify them against the sandbox.
 Sorting uses the documented `sort_by` / `sort_order` values (`InPostShipmentSortBy`, `InPostSortOrder`).
+
+## Searching points
+
+`InPostApiClient.SearchPointsAsync(context, search, cancellationToken)` searches the InPost Points resource
+(parcel lockers, PaczkoPunkty, branches) and returns an `InPostPointPage` (`Items` plus `Count`, `Page`, `PerPage`
+and `TotalPages`). `GetPointAsync(context, "KRA010", cancellationToken)` returns one point by name, or null. The
+filters are described by `InPostPointSearch` and cover everything in the
+[Points documentation](https://dokumentacja-inpost.atlassian.net/wiki/spaces/PL/pages/18153470/Zas+b+Points+Paczkomat+PaczkoPunkty):
+names, `InPostPointType`, `InPostPointFunction`, partner IDs, post codes / cities / provinces, update dates,
+location (`RelativePoint` or `RelativePostCode` with `MaxDistance` and `Limit`), `InPostPointSortBy`,
+`InPostSortOrder`, `Page` and `PerPage`. `ToQuery()` rejects combinations the API documents as invalid (`UpdatedTo`
+without `UpdatedFrom`, `MaxDistance` over 50 km, `PerPage` over 500).
+
+```csharp
+var page = await client.SearchPointsAsync(context, new InPostPointSearch
+{
+    RelativePostCode = "30-394",
+    Types = [InPostPointType.ParcelLocker],
+    Functions = [InPostPointFunction.ParcelCollect],
+    MaxDistance = 2000,
+    SortBy = InPostPointSortBy.DistanceToRelativePoint,
+    Limit = 5,
+}, cancellationToken);
+```
+
+`SearchPickupPointsAsync` of the provider (`IPickupPointProvider`) uses this search around the destination post code,
+nearest first.
+
+Points are served by a separate gateway, selected by the connection's test mode: `https://api.inpost.pl` in
+production and `https://sandbox-api-gateway-pl.easypack24.net` in the sandbox. It uses the same bearer token, which
+needs the Points access (the sandbox rejects requests without a token with 403). `InPostPoint` holds the documented
+attributes that matter for choosing a point; `type`, `status` and `functions` stay strings so values InPost adds
+later do not break reading, and `display_name`, which the documentation lists, is missing from sandbox responses
+(`DisplayName` is null there).
 
 ## Future extension points (not implemented)
 

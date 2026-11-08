@@ -81,27 +81,27 @@ public sealed record InPostShipmentSearch
     {
         var query = new Dictionary<string, string>();
 
-        Add(query, "id", Ids?.Select(id => id.ToString(CultureInfo.InvariantCulture)));
-        Add(query, "created_at", CreatedOn?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-        Add(query, "created_at_gteq", CreatedFrom?.ToString("O", CultureInfo.InvariantCulture));
-        Add(query, "created_at_lteq", CreatedTo?.ToString("O", CultureInfo.InvariantCulture));
-        Add(query, "tracking_number", TrackingNumber);
-        Add(query, "tracking_number_cont", TrackingNumberContains);
-        Add(query, "status", Statuses);
-        Add(query, "service", Services);
-        Add(query, "carrier", Carriers);
-        Add(query, "insurance_amount_gteq", InsuranceAmountFrom);
-        Add(query, "insurance_amount_lteq", InsuranceAmountTo);
-        Add(query, "cod_amount_gteq", CodAmountFrom);
-        Add(query, "cod_amount_lteq", CodAmountTo);
+        InPostQuery.Add(query, "id", Ids?.Select(id => id.ToString(CultureInfo.InvariantCulture)));
+        InPostQuery.Add(query, "created_at", CreatedOn?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        InPostQuery.Add(query, "created_at_gteq", CreatedFrom?.ToString("O", CultureInfo.InvariantCulture));
+        InPostQuery.Add(query, "created_at_lteq", CreatedTo?.ToString("O", CultureInfo.InvariantCulture));
+        InPostQuery.Add(query, "tracking_number", TrackingNumber);
+        InPostQuery.Add(query, "tracking_number_cont", TrackingNumberContains);
+        InPostQuery.Add(query, "status", Statuses);
+        InPostQuery.Add(query, "service", Services);
+        InPostQuery.Add(query, "carrier", Carriers);
+        InPostQuery.Add(query, "insurance_amount_gteq", InsuranceAmountFrom);
+        InPostQuery.Add(query, "insurance_amount_lteq", InsuranceAmountTo);
+        InPostQuery.Add(query, "cod_amount_gteq", CodAmountFrom);
+        InPostQuery.Add(query, "cod_amount_lteq", CodAmountTo);
         Receiver?.AddTo(query, "receiver");
         Sender?.AddTo(query, "sender");
-        Add(query, "monitoring", Monitoring);
-        Add(query, "external_customer_id", ExternalCustomerId);
-        Add(query, "sending_method", SendingMethods);
-        Add(query, "only_choice_active_offers", OnlyChoiceActiveOffers);
-        Add(query, "offers_status", OffersStatus);
-        Add(query, "sort_by", SortBy switch
+        InPostQuery.Add(query, "monitoring", Monitoring);
+        InPostQuery.Add(query, "external_customer_id", ExternalCustomerId);
+        InPostQuery.Add(query, "sending_method", SendingMethods);
+        InPostQuery.Add(query, "only_choice_active_offers", OnlyChoiceActiveOffers);
+        InPostQuery.Add(query, "offers_status", OffersStatus);
+        InPostQuery.Add(query, "sort_by", SortBy switch
         {
             null => null,
             InPostShipmentSortBy.Id => "id",
@@ -114,36 +114,18 @@ public sealed record InPostShipmentSearch
             InPostShipmentSortBy.ExternalCustomerId => "external_customer_id",
             _ => throw new InvalidOperationException($"Unsupported shipment sort attribute: {SortBy}."),
         });
-        Add(query, "sort_order", SortOrder switch
+        InPostQuery.Add(query, "sort_order", SortOrder switch
         {
             null => null,
             InPostSortOrder.Ascending => "asc",
             InPostSortOrder.Descending => "desc",
             _ => throw new InvalidOperationException($"Unsupported sort order: {SortOrder}."),
         });
-        Add(query, "page", Page);
-        Add(query, "per_page", PerPage);
+        InPostQuery.Add(query, "page", Page);
+        InPostQuery.Add(query, "per_page", PerPage);
 
         return query;
     }
-
-    internal static void Add(IDictionary<string, string> query, string name, string? value)
-    {
-        if (!string.IsNullOrWhiteSpace(value)) query[name] = value;
-    }
-
-    internal static void Add(IDictionary<string, string> query, string name, IEnumerable<string>? values)
-    {
-        var joined = values == null ? null : string.Join(',', values.Where(value => !string.IsNullOrWhiteSpace(value)));
-        Add(query, name, joined);
-    }
-
-    private static void Add(IDictionary<string, string> query, string name, bool? value) =>
-        Add(query, name, value?.ToString().ToLowerInvariant());
-
-    private static void Add<T>(IDictionary<string, string> query, string name, T? value)
-        where T : struct, IFormattable =>
-        Add(query, name, value?.ToString(null, CultureInfo.InvariantCulture));
 }
 
 /// <summary>
@@ -167,12 +149,12 @@ public sealed record InPostPartySearch
 
     internal void AddTo(IDictionary<string, string> query, string prefix)
     {
-        InPostShipmentSearch.Add(query, $"{prefix}_name", Name);
-        InPostShipmentSearch.Add(query, $"{prefix}_address", Address);
-        InPostShipmentSearch.Add(query, $"{prefix}_city", City);
-        InPostShipmentSearch.Add(query, $"{prefix}_post_code", PostCode);
-        InPostShipmentSearch.Add(query, $"{prefix}_country_code", CountryCode);
-        InPostShipmentSearch.Add(query, $"{prefix}_phone", Phone);
-        InPostShipmentSearch.Add(query, $"{prefix}_email", Email);
+        InPostQuery.Add(query, $"{prefix}_name", Name);
+        InPostQuery.Add(query, $"{prefix}_address", Address);
+        InPostQuery.Add(query, $"{prefix}_city", City);
+        InPostQuery.Add(query, $"{prefix}_post_code", PostCode);
+        InPostQuery.Add(query, $"{prefix}_country_code", CountryCode);
+        InPostQuery.Add(query, $"{prefix}_phone", Phone);
+        InPostQuery.Add(query, $"{prefix}_email", Email);
     }
 }

@@ -55,8 +55,9 @@ public interface IInPostApi
         [Property(InPostConnectionHandler.ContextOptionKey)] ShippingProviderConnectionContext context,
         CancellationToken cancellationToken);
 
+    // Served by the Points gateway rather than ShipX, see InPostConnection.GetBaseUrl.
     [Get("/v1/points")]
-    Task<JsonElement> SearchPointsAsync(
+    Task<JsonElement> GetPointsAsync(
         [Query] IDictionary<string, string> query,
         [Property(InPostConnectionHandler.ContextOptionKey)] ShippingProviderConnectionContext context,
         CancellationToken cancellationToken);

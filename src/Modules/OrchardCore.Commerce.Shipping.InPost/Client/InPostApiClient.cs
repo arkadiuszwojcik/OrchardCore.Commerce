@@ -127,15 +127,37 @@ public class InPostApiClient
     }
 
     /// <summary>
-    /// <c>GET /v1/points</c> - pickup/drop-off point search. Query parameter names beyond the base path were not
-    /// directly observable in the PHP source (only <c>BASE_PATH = '/v1/points'</c> was), so callers supply the
-    /// exact query string to use.
+    /// <c>GET /v1/points</c> - searches the Points resource (parcel lockers, PaczkoPunkty) with the filters, sorting and
+    /// paging of <paramref name="search"/> (see <see cref="InPostPointSearch"/>). The Points API is served by its own
+    /// gateway (see <see cref="InPostConnection.GetPointsBaseUrl"/>) and uses the same bearer token.
     /// </summary>
-    public async Task<IReadOnlyList<JsonElement>> SearchPointsAsync(
-        ShippingProviderConnectionContext context, IDictionary<string, string> query, CancellationToken cancellationToken)
+    public async Task<InPostPointPage> SearchPointsAsync(
+        ShippingProviderConnectionContext context, InPostPointSearch search, CancellationToken cancellationToken)
     {
-        var json = await UnwrapAsync(() => _api.SearchPointsAsync(query, context, cancellationToken));
-        return ExtractArray(json, "items");
+        var json = await UnwrapAsync(() => _api.GetPointsAsync(search.ToQuery(), context, cancellationToken));
+
+        var items = ExtractArray(json, "items")
+            .Select(Deserialize<InPostPoint>)
+            .OfType<InPostPoint>()
+            .ToList();
+
+        return new InPostPointPage(
+            items,
+            GetInt(json, "count"),
+            GetInt(json, "page"),
+            GetInt(json, "per_page"),
+            GetInt(json, "total_pages"));
+    }
+
+    /// <summary>
+    /// The details of one point, e.g. <c>KRA010</c>: the point details request of the Points documentation is a search
+    /// by <c>name</c>. Returns null when there is no such point.
+    /// </summary>
+    public async Task<InPostPoint?> GetPointAsync(
+        ShippingProviderConnectionContext context, string name, CancellationToken cancellationToken)
+    {
+        var page = await SearchPointsAsync(context, new InPostPointSearch { Names = [name] }, cancellationToken);
+        return page.Items.Count > 0 ? page.Items[0] : null;
     }
 
     // Refit wraps exceptions thrown by the HTTP pipeline in ApiRequestException; callers expect the original ones

@@ -79,9 +79,14 @@ calling the ShipX API.
 ## Pickup points
 
 Parcel locker services (`inpost_locker_*`) require selecting a pickup point (a specific
-Paczkomat). The provider implements `IPickupPointProvider.SearchPickupPointsAsync`, which calls
-`GET /v1/points` filtered by `relative_post_code` and sorted by `distance_to_relative_point`
-(grounded in the PrestaShop plugin's `ClosestPointDataProvider`).
+Paczkomat). The provider implements `IPickupPointProvider.SearchPickupPointsAsync`, which searches
+the InPost Points resource (`GET /v1/points`) around the destination post code, nearest first.
+
+`InPostApiClient.SearchPointsAsync` exposes the full search with typed filters (`InPostPointSearch`: names,
+types, functions, location and distance, sorting, paging) and returns typed `InPostPoint` results;
+`GetPointAsync` returns one point by name. Points are served by a separate gateway
+(`https://api.inpost.pl`, sandbox `https://sandbox-api-gateway-pl.easypack24.net`) using the same bearer token.
+See the module's Readme for details.
 
 ## Implementation Status
 
@@ -92,7 +97,7 @@ in the reference PHP plugins (`inpost-for-woocommerce`, `inpostshipping-presta`)
 
 A few response shapes could not be directly observed in that source (the PHP code only forwards
 the raw JSON) and are parsed defensively instead of against a confirmed schema - notably the
-`/shipments/calculate` "offers" array and the `/v1/points` "address" object. See the module's own
+`/shipments/calculate` "offers" array. See the module's own
 [Readme.md](https://github.com/OrchardCMS/OrchardCore.Commerce/blob/main/src/Modules/OrchardCore.Commerce.Shipping.InPost/Readme.md)
 for the full list of grounding notes and remaining TODOs (extension-service wiring for COD/insurance,
 credential encryption, unit tests, admin UI).
