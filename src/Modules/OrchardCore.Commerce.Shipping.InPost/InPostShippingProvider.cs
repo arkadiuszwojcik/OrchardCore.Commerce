@@ -441,22 +441,22 @@ public class InPostShippingProvider :
             : new InPostCustomAttributes(InPostSendingMethods.DispatchOrder);
 
         return new InPostShipmentRequest(
-            Receiver: MapContact(destination),
+            Receiver: MapParty(destination),
             Parcels: packages.Select(package => BuildParcel(package, serviceId)).ToList(),
             Service: serviceId,
             CustomAttributes: customAttributes,
-            Sender: MapContact(origin),
+            Sender: MapParty(origin),
             Reference: reference);
     }
 
-    private static InPostContact MapContact(AddressSnapshot address)
+    private static InPostParty MapParty(AddressSnapshot address)
     {
         var name = address.Name ?? string.Empty;
         var spaceIndex = name.IndexOf(' ', StringComparison.Ordinal);
         var firstName = spaceIndex > 0 ? name[..spaceIndex] : name;
         var lastName = spaceIndex > 0 ? name[(spaceIndex + 1)..] : name;
 
-        return new InPostContact(
+        return new InPostParty(
             FirstName: firstName,
             LastName: lastName,
             Email: address.Email ?? string.Empty,

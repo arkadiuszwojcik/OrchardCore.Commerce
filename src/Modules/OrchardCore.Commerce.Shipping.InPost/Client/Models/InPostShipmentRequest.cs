@@ -8,11 +8,11 @@ namespace OrchardCore.Commerce.Shipping.InPost.Client.Models;
 /// used across both PHP plugins.
 /// </summary>
 public sealed record InPostShipmentRequest(
-    InPostContact Receiver,
+    InPostParty Receiver,
     IReadOnlyList<InPostParcel> Parcels,
     string Service,
     InPostCustomAttributes CustomAttributes,
-    InPostContact? Sender = null,
+    InPostParty? Sender = null,
     string? Reference = null,
     InPostMoney? Cod = null,
     InPostMoney? Insurance = null);

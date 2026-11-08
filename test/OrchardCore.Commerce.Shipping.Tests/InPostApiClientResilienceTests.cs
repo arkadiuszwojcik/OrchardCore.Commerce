@@ -38,7 +38,7 @@ public class InPostApiClientResilienceTests
         }
     }
 
-    private static InPostShipmentRequest CreateRequest() => new(new InPostContact("A", "B", "a@b.c", "123", new InPostAddress(null, "S", "1", null, null, "C", "00-001", "PL")), [], "inpost_locker_standard", new InPostCustomAttributes("parcel_locker"));
+    private static InPostShipmentRequest CreateRequest() => new(new InPostParty("A", "B", "a@b.c", "123", new InPostAddress(null, "S", "1", null, null, "C", "00-001", "PL")), [], "inpost_locker_standard", new InPostCustomAttributes("parcel_locker"));
 
     private static InPostApiClient CreateClient(HttpMessageHandler handler)
     {

@@ -49,9 +49,9 @@ public interface IInPostApi
         CancellationToken cancellationToken);
 
     [Get("/v1/organizations/{organizationId}/shipments")]
-    Task<JsonElement> FindShipmentsByTrackingNumberAsync(
+    Task<JsonElement> GetShipmentsAsync(
         string organizationId,
-        [AliasAs("tracking_number")] string trackingNumber,
+        [Query] IDictionary<string, string> query,
         [Property(InPostConnectionHandler.ContextOptionKey)] ShippingProviderConnectionContext context,
         CancellationToken cancellationToken);
 

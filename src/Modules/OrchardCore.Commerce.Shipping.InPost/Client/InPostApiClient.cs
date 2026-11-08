@@ -91,18 +91,39 @@ public class InPostApiClient
         });
 
     /// <summary>
+    /// <c>GET /v1/organizations/{organizationId}/shipments</c> with the filters, sorting and paging of
+    /// <paramref name="search"/> (see <see cref="InPostShipmentSearch"/>). Returns the shipments of the requested page.
+    /// </summary>
+    public async Task<InPostShipmentPage> SearchShipmentsAsync(
+        ShippingProviderConnectionContext context, InPostShipmentSearch search, CancellationToken cancellationToken)
+    {
+        var json = await UnwrapAsync(() => _api.GetShipmentsAsync(
+            InPostConnection.GetOrganizationId(context), search.ToQuery(), context, cancellationToken));
+
+        var items = ExtractArray(json, "items")
+            .Select(Deserialize<InPostShipmentResponse>)
+            .OfType<InPostShipmentResponse>()
+            .ToList();
+
+        return new InPostShipmentPage(
+            items,
+            GetInt(json, "count"),
+            GetInt(json, "page"),
+            GetInt(json, "per_page"));
+    }
+
+    /// <summary>
     /// There is no dedicated "track by tracking number" endpoint in either reference plugin; both poll the
     /// shipments collection filtered by an attribute (they filter by <c>id</c>). This applies the same,
-    /// grounded collection-filter mechanism to the <c>tracking_number</c> attribute:
-    /// <c>GET /v1/organizations/{organizationId}/shipments?tracking_number={trackingNumber}</c>.
+    /// grounded collection-filter mechanism to the <c>tracking_number</c> attribute through
+    /// <see cref="SearchShipmentsAsync"/>.
     /// </summary>
     public async Task<InPostShipmentResponse?> FindShipmentByTrackingNumberAsync(
         ShippingProviderConnectionContext context, string trackingNumber, CancellationToken cancellationToken)
     {
-        var json = await UnwrapAsync(() => _api.FindShipmentsByTrackingNumberAsync(
-            InPostConnection.GetOrganizationId(context), trackingNumber, context, cancellationToken));
-        var items = ExtractArray(json, "items");
-        return items.Count > 0 ? Deserialize<InPostShipmentResponse>(items[0]) : null;
+        var page = await SearchShipmentsAsync(
+            context, new InPostShipmentSearch { TrackingNumber = trackingNumber }, cancellationToken);
+        return page.Items.Count > 0 ? page.Items[0] : null;
     }
 
     /// <summary>
@@ -135,6 +156,14 @@ public class InPostApiClient
     private static T? Deserialize<T>(JsonElement json)
         where T : class =>
         json.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null ? null : json.Deserialize<T>(InPostJson.Options);
+
+    private static int? GetInt(JsonElement json, string propertyName) =>
+        json.ValueKind == JsonValueKind.Object &&
+        json.TryGetProperty(propertyName, out var value) &&
+        value.ValueKind == JsonValueKind.Number &&
+        value.TryGetInt32(out var number)
+            ? number
+            : null;
 
     // Collection endpoints wrap results as {"<propertyName>": [...]} (e.g. "items" for GetAllTrait-based
     // resources, "shipments" for /calculate which mirrors its own request envelope), falling back to a bare

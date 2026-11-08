@@ -82,6 +82,34 @@ See `Constants/InPostSendingMethods.cs`:
 - `parcel_locker` - sender drops the parcel off at a parcel locker.
 - `pop` - sender drops the parcel off at a partner point of service.
 
+## Searching shipments
+
+`InPostApiClient.SearchShipmentsAsync(context, search, cancellationToken)` calls
+`GET /v1/organizations/{id}/shipments` and returns an `InPostShipmentPage` (`Items` plus the `Count`, `Page` and
+`PerPage` of the ShipX collection envelope, null for a bare-array response). The filters are described by
+`InPostShipmentSearch`; every property is optional and `ToQuery()` turns the set ones into the ShipX parameters
+(lists comma separated, ISO 8601 times, invariant numbers). It covers all filters of the
+[ShipX search documentation](https://dokumentacja-inpost.atlassian.net/wiki/spaces/PL/pages/11731073/Wyszukiwanie+i+sortowanie+przesy+ek),
+with `Receiver` and `Sender` (`InPostPartySearch`) for the `receiver_*` / `sender_*` parameters.
+
+```csharp
+var page = await client.SearchShipmentsAsync(context, new InPostShipmentSearch
+{
+    Statuses = ["confirmed", "offers_prepared"],
+    CreatedFrom = DateTimeOffset.UtcNow.AddDays(-7),
+    Receiver = new InPostPartySearch { City = "Kraków" },
+    SortBy = InPostShipmentSortBy.CreatedAt,
+    SortOrder = InPostSortOrder.Descending,
+    PerPage = 25,
+}, cancellationToken);
+```
+
+`FindShipmentByTrackingNumberAsync` (used for tracking) is a shortcut for a search by `TrackingNumber`.
+
+**Not confirmed:** the paging parameter names (`page`, `per_page`) and the `count` / `page` / `per_page` envelope
+fields are not on the search documentation page. They follow ShipX convention; verify them against the sandbox.
+Sorting uses the documented `sort_by` / `sort_order` values (`InPostShipmentSortBy`, `InPostSortOrder`).
+
 ## Future extension points (not implemented)
 
 InPost's ShipX API also supports additional services not modeled yet, such as insurance,
