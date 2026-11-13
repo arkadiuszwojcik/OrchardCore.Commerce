@@ -35,7 +35,9 @@
       ],
       "disable": [
         "OrchardCore.Commerce.Payment.Exactly",
-        "OrchardCore.Commerce.Payment.Stripe"
+        "Kytrixlabs.Commerce.Payment.Przelewy24",
+        "OrchardCore.Commerce.Payment.Stripe",
+        "Kytrixlabs.Commerce.Payment.TPay"
       ]
     },
     {

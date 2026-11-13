@@ -102,9 +102,13 @@ public class OrderMigrations : DataMigration
                 .WithField(nameof(OrderPart.IsCorporation), field => field
                     .OfType(nameof(BooleanField))
                     .WithDisplayName("Buyer is a corporation"))
+                .WithField(nameof(OrderPart.IsTestOrder), field => field
+                    .OfType(nameof(BooleanField))
+                    .WithDisplayName("Test Order (Sandbox)")
+                    .WithDescription("When enabled, payment and shipping providers for this order are routed to their sandbox environments."))
             );
 
-        return 9;
+        return 10;
     }
 
     public async Task<int> UpdateFrom1Async()
@@ -264,5 +268,18 @@ public class OrderMigrations : DataMigration
             ));
 
         return 9;
+    }
+
+    public async Task<int> UpdateFrom9Async()
+    {
+        await _contentDefinitionManager
+            .AlterPartDefinitionAsync(nameof(OrderPart), part => part
+                .WithField(nameof(OrderPart.IsTestOrder), field => field
+                    .OfType(nameof(BooleanField))
+                    .WithDisplayName("Test Order (Sandbox)")
+                    .WithDescription("When enabled, payment and shipping providers for this order are routed to their sandbox environments."))
+            );
+
+        return 10;
     }
 }

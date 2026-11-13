@@ -41,12 +41,18 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(KytrixlabsCommerceReferenceMode)' == 'Project'">
+    <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Order.Management\Kytrixlabs.Commerce.Order.Management.csproj" />
+    <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Payment.Przelewy24\Kytrixlabs.Commerce.Payment.Przelewy24.csproj" />
+    <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Payment.TPay\Kytrixlabs.Commerce.Payment.TPay.csproj" />
     <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.Dhl\Kytrixlabs.Commerce.Shipping.Dhl.csproj" />
     <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.Dpd\Kytrixlabs.Commerce.Shipping.Dpd.csproj" />
     <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.InPost\Kytrixlabs.Commerce.Shipping.InPost.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(KytrixlabsCommerceReferenceMode)' != 'Project'">
+    <PackageReference Include="Kytrixlabs.Commerce.Order.Management" />
+    <PackageReference Include="Kytrixlabs.Commerce.Payment.Przelewy24" />
+    <PackageReference Include="Kytrixlabs.Commerce.Payment.TPay" />
     <PackageReference Include="Kytrixlabs.Commerce.Shipping.Dhl" />
     <PackageReference Include="Kytrixlabs.Commerce.Shipping.Dpd" />
     <PackageReference Include="Kytrixlabs.Commerce.Shipping.InPost" />

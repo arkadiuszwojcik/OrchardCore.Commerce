@@ -36,6 +36,20 @@
                    prop-ClassNames="@("payment-form-phone")"
                    prop-Required="@true" />            
 
+            @if (Model.CanUseSandboxCheckout)
+            {
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox"
+                               asp-for="OrderPart.IsTestOrder.Value"
+                               class="form-check-input">
+                        <label asp-for="OrderPart.IsTestOrder.Value" class="form-check-label">
+                            @T["Enable sandbox/test mode for this order"]
+                        </label>
+                    </div>
+                </div>
+            }
+
             @if (ignoreAddress)
             {
                 @foreach (var shape in Model.CheckoutShapes)

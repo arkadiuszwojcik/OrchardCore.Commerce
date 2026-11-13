@@ -63,6 +63,8 @@
 
         "OrchardCore.Commerce.Payment.DummyProvider",
         "OrchardCore.Commerce.Payment.Exactly",
+        "Kytrixlabs.Commerce.Payment.Przelewy24",
+        "Kytrixlabs.Commerce.Payment.TPay",
         "OrchardCore.Commerce.Promotion",
         "OrchardCore.Commerce.Inventory",
         "OrchardCore.Commerce.Translations",
@@ -183,6 +185,17 @@
             "Export",
             "ViewAuditTrail",
             "ManageAuditTrailSettings"
+          ]
+        },
+        {
+          "Name": "Tester",
+          "Description": "Tester role",
+          "Permissions": [
+            "AccessAdminPanel",
+            "ManageOwnUserInformation",
+            "ViewContent",
+            "Checkout",
+            "UseSandboxCheckout"
           ]
         }
       ]

@@ -2,6 +2,10 @@
 @model OrderPartViewModel
 
 <section id="shopping-cart">
+    @if (Model.OrderPart.IsTestOrder.Value)
+    {
+        <span class="badge bg-warning text-dark test-order-badge">@T["TEST ORDER"]</span>
+    }
     @if (Model.LineItems?.Any() == true)
     {
         <div class="container">

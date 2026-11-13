@@ -21,5 +21,6 @@ public interface ICheckoutViewModel : IPaymentViewModel, IShape
     string UserEmail { get; }
     bool IsInvalid { get; set; }
     bool ShouldIgnoreAddress { get; set; }
+    bool CanUseSandboxCheckout { get; set; }
     IEnumerable<IShape> CheckoutShapes { get; }
 }

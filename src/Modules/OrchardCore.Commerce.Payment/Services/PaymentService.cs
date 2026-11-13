@@ -1,5 +1,6 @@
 using Lombiq.HelpfulLibraries.AspNetCore.Exceptions;
 using Lombiq.HelpfulLibraries.OrchardCore.DependencyInjection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -34,6 +35,7 @@ namespace OrchardCore.Commerce.Payment.Services;
 
 public class PaymentService : IPaymentService
 {
+    private readonly IAuthorizationService _authorizationService;
     private readonly ICheckoutAddressService _checkoutAddressService;
     private readonly IShoppingCartPersistence _shoppingCartPersistence;
     private readonly IFieldsOnlyDisplayManager _fieldsOnlyDisplayManager;
@@ -69,6 +71,7 @@ public class PaymentService : IPaymentService
         IMoneyService moneyService)
 #pragma warning restore S107 // Methods should not have too many parameters
     {
+        _authorizationService = services.AuthorizationService.Value;
         _checkoutAddressService = checkoutAddressService;
         _shoppingCartPersistence = shoppingCartPersistence;
         _fieldsOnlyDisplayManager = fieldsOnlyDisplayManager;
@@ -147,6 +150,7 @@ public class PaymentService : IPaymentService
         viewModel.Provinces.AddRange(await _regionService.GetAllProvincesAsync());
         await viewModel.WithProviderDataAsync(_paymentProvidersLazy.Value, shoppingCartId: shoppingCartId);
         viewModel.ShouldIgnoreAddress = await _checkoutAddressService.ShouldIgnoreAddressAsync(viewModel);
+        viewModel.CanUseSandboxCheckout = await IsSandboxCheckoutAuthorizedAsync();
 
         if (viewModel.ShouldIgnoreAddress)
         {
@@ -248,6 +252,12 @@ public class PaymentService : IPaymentService
                 orderPart.ShippingAddress = orderPart.BillingAddress;
             }
 
+            // Never trust the posted flag: only a user authorized for UseSandboxCheckout may enable sandbox routing.
+            if (orderPart.IsTestOrder.Value && !await IsSandboxCheckoutAuthorizedAsync())
+            {
+                orderPart.IsTestOrder.Value = false;
+            }
+
             await _orderEvents.AwaitEachAsync(orderEvents =>
                 orderEvents.CreatedFreeAsync(orderPart, cart, cartViewModel));
         });
@@ -256,6 +266,9 @@ public class PaymentService : IPaymentService
 
         return order;
     }
+
+    private Task<bool> IsSandboxCheckoutAuthorizedAsync() =>
+        _authorizationService.AuthorizeCurrentUserAsync(_hca.HttpContext, Permissions.UseSandboxCheckout);
 
     public async Task<PaymentOperationStatusViewModel> CheckoutWithoutPaymentAsync(string? shoppingCartId, bool mustBeFree = true)
     {
@@ -310,7 +323,14 @@ public class PaymentService : IPaymentService
 
         var status = order.GetMaybe<OrderPart>()?.Status?.Text ?? OrderStatusCodes.Pending;
 
-        if (status is not OrderStatusCodes.Pending and not OrderStatusCodes.PaymentFailed)
+        // TPay and Przelewy24 process payment confirmations via an asynchronous server-to-server webhook, which can
+        // race ahead of the browser being redirected back to this callback and finalize the order (status Ordered)
+        // before the callback runs. Both providers' UpdateAndRedirectToFinishedOrderAsync already handle that case
+        // (running FinalModificationOfOrderAsync, e.g. clearing the shopping cart, even when IsOrdered is already
+        // true), but that branch was unreachable because this guard used to return NotThingToDo for any status
+        // other than Pending/PaymentFailed, short-circuiting before the provider was ever called. Allowing Ordered
+        // through lets that existing provider logic run instead of silently skipping cart cleanup.
+        if (status is not OrderStatusCodes.Pending and not OrderStatusCodes.PaymentFailed and not OrderStatusCodes.Ordered)
         {
             return new PaymentOperationStatusViewModel
             {
@@ -368,6 +388,9 @@ public class PaymentService : IPaymentService
     {
         ArgumentNullException.ThrowIfNull(order);
 
+        // Guards against redelivered payment webhooks re-triggering order events or overwriting charges.
+        if (order.GetOrCreate<OrderPart>().IsOrdered) return;
+
         order.Alter<OrderPart>(orderPart =>
         {
             if (getCharges?.Invoke(orderPart)?.AsList() is { } newCharges)
@@ -375,10 +398,32 @@ public class PaymentService : IPaymentService
                 orderPart.Charges.SetItems(newCharges);
             }
 
-            orderPart.Status = new TextField { ContentItem = order, Text = OrderStatusCodes.Ordered };
+            orderPart.SucceedPayment();
         });
 
         await _orderEvents.AwaitEachAsync(orderEvent => orderEvent.OrderedAsync(order, shoppingCartId));
+        await _contentManager.UpdateAsync(order);
+    }
+
+    public async Task UpdateOrderToPaymentFailedAsync(
+        ContentItem order,
+        Func<OrderPart, IEnumerable<Commerce.Abstractions.Models.Payment>?>? getCharges = null)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+
+        // A later webhook reporting the full payment may still arrive, so only an already-Ordered order is final.
+        if (order.GetOrCreate<OrderPart>().IsOrdered) return;
+
+        order.Alter<OrderPart>(orderPart =>
+        {
+            if (getCharges?.Invoke(orderPart)?.AsList() is { } newCharges)
+            {
+                orderPart.Charges.SetItems(newCharges);
+            }
+
+            orderPart.FailPayment();
+        });
+
         await _contentManager.UpdateAsync(order);
     }
 
@@ -404,6 +449,12 @@ public class PaymentService : IPaymentService
         else if (orderPart != null)
         {
             order.Apply(orderPart);
+        }
+
+        // Never trust the posted flag: only a user authorized for UseSandboxCheckout may enable sandbox routing.
+        if (part.IsTestOrder.Value && !await IsSandboxCheckoutAuthorizedAsync())
+        {
+            part.IsTestOrder.Value = false;
         }
 
         // If there are line items in the Order, use data from Order instead of shopping cart.

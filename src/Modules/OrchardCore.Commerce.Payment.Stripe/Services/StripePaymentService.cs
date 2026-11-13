@@ -133,8 +133,7 @@ public class StripePaymentService : IStripePaymentService
     public async Task UpdateOrderToPaymentFailedAsync(string paymentIntentId)
     {
         var order = await GetOrderByPaymentIntentIdAsync(paymentIntentId);
-        order.Alter<OrderPart>(orderPart =>
-            orderPart.Status = new TextField { ContentItem = order, Text = OrderStatusCodes.PaymentFailed });
+        order.Alter<OrderPart>(orderPart => orderPart.FailPayment());
 
         await _contentManager.UpdateAsync(order);
     }

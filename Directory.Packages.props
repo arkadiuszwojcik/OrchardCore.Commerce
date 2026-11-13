@@ -22,6 +22,9 @@
     <PackageVersion Include="Lombiq.Tests.UI" Version="15.0.1-alpha.2.osoe-1317" />
     <PackageVersion Include="Lombiq.Tests.UI.AppExtensions" Version="15.0.1-alpha.2.osoe-1317" />
     <PackageVersion Include="Lombiq.Tests.UI.Shortcuts" Version="15.0.1-alpha.2.osoe-1317" />
+    <PackageVersion Include="Kytrixlabs.Commerce.Order.Management" Version="$(KytrixlabsCommerceVersion)" />
+    <PackageVersion Include="Kytrixlabs.Commerce.Payment.Przelewy24" Version="$(KytrixlabsCommerceVersion)" />
+    <PackageVersion Include="Kytrixlabs.Commerce.Payment.TPay" Version="$(KytrixlabsCommerceVersion)" />
     <PackageVersion Include="Kytrixlabs.Commerce.Shipping.Dhl" Version="$(KytrixlabsCommerceVersion)" />
     <PackageVersion Include="Kytrixlabs.Commerce.Shipping.Dpd" Version="$(KytrixlabsCommerceVersion)" />
     <PackageVersion Include="Kytrixlabs.Commerce.Shipping.InPost" Version="$(KytrixlabsCommerceVersion)" />

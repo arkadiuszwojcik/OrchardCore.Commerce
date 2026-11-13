@@ -61,6 +61,19 @@ public interface IPaymentService
         Func<OrderPart, IEnumerable<Commerce.Abstractions.Models.Payment>?>? getCharges = null);
 
     /// <summary>
+    /// Updates the <paramref name="order"/>'s status to <see cref="OrderStatuses.PaymentFailed"/>, unless it's
+    /// already <see cref="OrderStatuses.Ordered"/>. A later webhook reporting the full payment can still transition
+    /// the order to <see cref="OrderStatuses.Ordered"/> via <see cref="UpdateOrderToOrderedAsync"/>.
+    /// </summary>
+    /// <param name="getCharges">
+    /// A callback to set the charges of the order. If returns <see langword="null"/> then the <see
+    /// cref="OrderPart.Charges"/> won't be altered, otherwise it will be replaced with the returned value.
+    /// </param>
+    Task UpdateOrderToPaymentFailedAsync(
+        ContentItem order,
+        Func<OrderPart, IEnumerable<Commerce.Abstractions.Models.Payment>?>? getCharges = null);
+
+    /// <summary>
     /// Tries to get the order identified by <paramref name="orderId"/>, or creates a new one if it's not there. Then
     /// updates the order's line items and address using the data in the <paramref name="updateModelAccessor"/> and the
     /// shopping cart identified by the <paramref name="shoppingCartId"/>. Additional alterations may be done via

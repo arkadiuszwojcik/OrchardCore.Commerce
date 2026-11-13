@@ -1,9 +1,12 @@
 using OrchardCore.Commerce.Abstractions.Constants;
 using OrchardCore.Commerce.Abstractions.Fields;
+using OrchardCore.Commerce.MoneyDataType;
+using OrchardCore.Commerce.MoneyDataType.Extensions;
 using OrchardCore.ContentFields.Fields;
 using OrchardCore.ContentManagement;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
@@ -38,6 +41,11 @@ public class OrderPart : ContentPart
     public BooleanField BillingAndShippingAddressesMatch { get; set; } = new();
     public BooleanField IsCorporation { get; set; } = new();
 
+    /// <summary>
+    /// Gets or sets whether this order's payment and shipping providers should be routed to their sandbox/test environments.
+    /// </summary>
+    public BooleanField IsTestOrder { get; set; } = new();
+
     public IDictionary<string, JsonNode> AdditionalData { get; } = new Dictionary<string, JsonNode>();
 
     [JsonIgnore]
@@ -48,6 +56,13 @@ public class OrderPart : ContentPart
 
     [JsonIgnore]
     public bool IsFailed => Status?.Text?.EqualsOrdinalIgnoreCase(OrderStatusCodes.PaymentFailed) == true;
+
+    /// <summary>
+    /// Gets the total amount expected to be paid for this order: the sum of all <see cref="LineItems"/> plus any <see
+    /// cref="AdditionalCosts"/> (e.g. taxes, shipping), since the total isn't always a simple sum of line prices.
+    /// </summary>
+    public Amount GetExpectedTotal() =>
+        LineItems.Select(item => item.LinePrice).Concat(AdditionalCosts.Select(cost => cost.Cost)).Sum();
 
     /// <summary>
     /// Sets the <see cref="Status"/> to <see cref="OrderStatusCodes.PaymentFailed"/>.

@@ -32,6 +32,8 @@ public class CheckoutViewModel : PaymentViewModel, ICheckoutViewModel
 
     public bool ShouldIgnoreAddress { get; set; }
 
+    public bool CanUseSandboxCheckout { get; set; }
+
     public IEnumerable<IShape> CheckoutShapes { get; init; } = [];
 
     public CheckoutViewModel(OrderPart orderPart, Amount singleCurrencyTotal, Amount netTotal)
