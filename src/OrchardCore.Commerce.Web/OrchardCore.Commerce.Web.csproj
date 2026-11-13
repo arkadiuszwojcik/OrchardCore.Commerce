@@ -5,6 +5,11 @@
     <CopyRefAssembliesToPublishDirectory>true</CopyRefAssembliesToPublishDirectory>
     <IsPackable>false</IsPackable>
     <OrchardCoreVersion>3.0.1</OrchardCoreVersion>
+    <!-- "Project" references the Kytrixlabs.Commerce.Shipping.* modules from the sibling Kytrixlabs.Commerce repository
+         (see KytrixlabsCommerceRoot in Directory.Build.props), "Package" uses their NuGet packages. Defaults to
+         "Project" when that repository exists. Override with e.g. -p:KytrixlabsCommerceReferenceMode=Package. -->
+    <KytrixlabsCommerceReferenceMode Condition="'$(KytrixlabsCommerceReferenceMode)' == '' AND Exists('$(KytrixlabsCommerceRoot)')">Project</KytrixlabsCommerceReferenceMode>
+    <KytrixlabsCommerceReferenceMode Condition="'$(KytrixlabsCommerceReferenceMode)' == ''">Package</KytrixlabsCommerceReferenceMode>
   </PropertyGroup>
 
   <!-- Currently we don't have any ps1/psm1/psd1 files in the repo, so this is commented out. Add the ProjectReference
@@ -33,6 +38,18 @@
     <ProjectReference Include="..\..\test\OrchardCore.Commerce.Tests.UI.Shortcuts\OrchardCore.Commerce.Tests.UI.Shortcuts.csproj" />
     <ProjectReference Include="..\Modules\OrchardCore.Commerce.Payment.Stripe\OrchardCore.Commerce.Payment.Stripe.csproj" />
     <ProjectReference Include="..\Modules\OrchardCore.Commerce\OrchardCore.Commerce.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(KytrixlabsCommerceReferenceMode)' == 'Project'">
+    <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.Dhl\Kytrixlabs.Commerce.Shipping.Dhl.csproj" />
+    <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.Dpd\Kytrixlabs.Commerce.Shipping.Dpd.csproj" />
+    <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.InPost\Kytrixlabs.Commerce.Shipping.InPost.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(KytrixlabsCommerceReferenceMode)' != 'Project'">
+    <PackageReference Include="Kytrixlabs.Commerce.Shipping.Dhl" />
+    <PackageReference Include="Kytrixlabs.Commerce.Shipping.Dpd" />
+    <PackageReference Include="Kytrixlabs.Commerce.Shipping.InPost" />
   </ItemGroup>
 
 </Project>

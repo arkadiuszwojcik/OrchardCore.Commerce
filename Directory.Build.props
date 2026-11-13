@@ -19,6 +19,11 @@
           SkipUnchangedFiles="true" />
   </Target>
 
+  <!-- Kytrixlabs.Commerce is expected to live next to this repository. Override the path if it is elsewhere. -->
+  <PropertyGroup>
+    <KytrixlabsCommerceRoot Condition="'$(KytrixlabsCommerceRoot)' == ''">$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', 'Kytrixlabs.Commerce'))</KytrixlabsCommerceRoot>
+  </PropertyGroup>
+
   <!-- Inherit parent props file if one exists. -->
   <Import Condition="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../')) != ''"
           Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />

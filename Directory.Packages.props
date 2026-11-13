@@ -6,6 +6,8 @@
          distributed as NuGet packages. On the other hand, the consuming projects (including OrchardCore.Commerce.Web)
          should use Orchard Core references for the latest patch version to pull all versions up in the final app. -->
     <OrchardCoreVersion>3.0.1</OrchardCoreVersion>
+    <!-- Version of the Kytrixlabs.Commerce.Shipping.* packages, used when they are not referenced as projects. -->
+    <KytrixlabsCommerceVersion>1.0.0</KytrixlabsCommerceVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="GraphQL.MicrosoftDI" Version="8.8.5" />
@@ -20,6 +22,9 @@
     <PackageVersion Include="Lombiq.Tests.UI" Version="15.0.1-alpha.2.osoe-1317" />
     <PackageVersion Include="Lombiq.Tests.UI.AppExtensions" Version="15.0.1-alpha.2.osoe-1317" />
     <PackageVersion Include="Lombiq.Tests.UI.Shortcuts" Version="15.0.1-alpha.2.osoe-1317" />
+    <PackageVersion Include="Kytrixlabs.Commerce.Shipping.Dhl" Version="$(KytrixlabsCommerceVersion)" />
+    <PackageVersion Include="Kytrixlabs.Commerce.Shipping.Dpd" Version="$(KytrixlabsCommerceVersion)" />
+    <PackageVersion Include="Kytrixlabs.Commerce.Shipping.InPost" Version="$(KytrixlabsCommerceVersion)" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="4.14.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageVersion Include="Microsoft.Testing.Extensions.GitHubActionsReport" Version="2.5.1" />
