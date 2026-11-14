@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -46,7 +46,10 @@
     <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Payment.TPay\Kytrixlabs.Commerce.Payment.TPay.csproj" />
     <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.Dhl\Kytrixlabs.Commerce.Shipping.Dhl.csproj" />
     <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.Dpd\Kytrixlabs.Commerce.Shipping.Dpd.csproj" />
+    <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.Gls\Kytrixlabs.Commerce.Shipping.Gls.csproj" />
     <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.InPost\Kytrixlabs.Commerce.Shipping.InPost.csproj" />
+    <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.OrlenPaczka\Kytrixlabs.Commerce.Shipping.OrlenPaczka.csproj" />
+    <ProjectReference Include="$(KytrixlabsCommerceRoot)src\Modules\Kytrixlabs.Commerce.Shipping.PocztaPolska\Kytrixlabs.Commerce.Shipping.PocztaPolska.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(KytrixlabsCommerceReferenceMode)' != 'Project'">
@@ -55,7 +58,10 @@
     <PackageReference Include="Kytrixlabs.Commerce.Payment.TPay" />
     <PackageReference Include="Kytrixlabs.Commerce.Shipping.Dhl" />
     <PackageReference Include="Kytrixlabs.Commerce.Shipping.Dpd" />
+    <PackageReference Include="Kytrixlabs.Commerce.Shipping.Gls" />
     <PackageReference Include="Kytrixlabs.Commerce.Shipping.InPost" />
+    <PackageReference Include="Kytrixlabs.Commerce.Shipping.OrlenPaczka" />
+    <PackageReference Include="Kytrixlabs.Commerce.Shipping.PocztaPolska" />
   </ItemGroup>
 
 </Project>

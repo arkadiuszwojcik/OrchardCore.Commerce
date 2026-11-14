@@ -86,6 +86,7 @@
   <Folder Name="/Kytrixlabs.Commerce/src/Libraries/">
     <Project Path="../Kytrixlabs.Commerce/src/Libraries/Kytrixlabs.Dhl.Client/Kytrixlabs.Dhl.Client.csproj" />
     <Project Path="../Kytrixlabs.Commerce/src/Libraries/Kytrixlabs.Dpd.Client/Kytrixlabs.Dpd.Client.csproj" />
+    <Project Path="../Kytrixlabs.Commerce/src/Libraries/Kytrixlabs.Gls.Client/Kytrixlabs.Gls.Client.csproj" />
     <Project Path="../Kytrixlabs.Commerce/src/Libraries/Kytrixlabs.InPost.Client/Kytrixlabs.InPost.Client.csproj" />
     <Project Path="../Kytrixlabs.Commerce/src/Libraries/Kytrixlabs.Przelewy24.Client/Kytrixlabs.Przelewy24.Client.csproj" />
     <Project Path="../Kytrixlabs.Commerce/src/Libraries/Kytrixlabs.TPay.Client/Kytrixlabs.TPay.Client.csproj" />
@@ -96,6 +97,9 @@
     <Project Path="../Kytrixlabs.Commerce/src/Modules/Kytrixlabs.Commerce.Payment.TPay/Kytrixlabs.Commerce.Payment.TPay.csproj" />
     <Project Path="../Kytrixlabs.Commerce/src/Modules/Kytrixlabs.Commerce.Shipping.Dhl/Kytrixlabs.Commerce.Shipping.Dhl.csproj" />
     <Project Path="../Kytrixlabs.Commerce/src/Modules/Kytrixlabs.Commerce.Shipping.Dpd/Kytrixlabs.Commerce.Shipping.Dpd.csproj" />
+    <Project Path="../Kytrixlabs.Commerce/src/Modules/Kytrixlabs.Commerce.Shipping.Gls/Kytrixlabs.Commerce.Shipping.Gls.csproj" />
     <Project Path="../Kytrixlabs.Commerce/src/Modules/Kytrixlabs.Commerce.Shipping.InPost/Kytrixlabs.Commerce.Shipping.InPost.csproj" />
+    <Project Path="../Kytrixlabs.Commerce/src/Modules/Kytrixlabs.Commerce.Shipping.OrlenPaczka/Kytrixlabs.Commerce.Shipping.OrlenPaczka.csproj" />
+    <Project Path="../Kytrixlabs.Commerce/src/Modules/Kytrixlabs.Commerce.Shipping.PocztaPolska/Kytrixlabs.Commerce.Shipping.PocztaPolska.csproj" />
   </Folder>
 </Solution>

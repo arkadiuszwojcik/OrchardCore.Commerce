@@ -27,7 +27,10 @@
     <PackageVersion Include="Kytrixlabs.Commerce.Payment.TPay" Version="$(KytrixlabsCommerceVersion)" />
     <PackageVersion Include="Kytrixlabs.Commerce.Shipping.Dhl" Version="$(KytrixlabsCommerceVersion)" />
     <PackageVersion Include="Kytrixlabs.Commerce.Shipping.Dpd" Version="$(KytrixlabsCommerceVersion)" />
+    <PackageVersion Include="Kytrixlabs.Commerce.Shipping.Gls" Version="$(KytrixlabsCommerceVersion)" />
     <PackageVersion Include="Kytrixlabs.Commerce.Shipping.InPost" Version="$(KytrixlabsCommerceVersion)" />
+    <PackageVersion Include="Kytrixlabs.Commerce.Shipping.OrlenPaczka" Version="$(KytrixlabsCommerceVersion)" />
+    <PackageVersion Include="Kytrixlabs.Commerce.Shipping.PocztaPolska" Version="$(KytrixlabsCommerceVersion)" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="4.14.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageVersion Include="Microsoft.Testing.Extensions.GitHubActionsReport" Version="2.5.1" />
